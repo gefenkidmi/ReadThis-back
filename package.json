@@ -22,6 +22,7 @@
     "jsonwebtoken": "^9.0.2",
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     "mongoose": "^8.9.5",
 <<<<<<< HEAD
 =======
@@ -31,6 +32,13 @@
 >>>>>>> dd82393 (connect the register api)
 =======
 >>>>>>> 8b8b837 (Connect login and sign up to front)
+=======
+    "mongoose": "^8.9.5",
+
+=======
+    "mongoose": "^8.9.3",
+>>>>>>> 851e8c9 (connect the register api)
+>>>>>>> c2a18e0 (connect the register api)
     "multer": "^1.4.5-lts.1",
     "path": "^0.12.7",
 =======

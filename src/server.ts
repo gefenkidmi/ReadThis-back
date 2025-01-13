@@ -9,7 +9,6 @@ import swaggerJsDoc from "swagger-jsdoc";
 import path from "path";
 
 import swaggerUI from "swagger-ui-express";
-import cors from "cors";
 
 // Routes
 import postsRoute from "./routes/post_route";
@@ -19,15 +18,20 @@ import authRoutes from "./routes/users_route"; // or "auth_route"
 // Initialize app
 const app = express();
 
+app.use("/public", express.static(path.join(__dirname, "../public")));
+
+// 1) Enable CORS (to allow requests from your React app at port 5173)
 app.use(
   cors({
-    origin: "http://localhost:5173", // Allow frontend requests
-    credentials: true, // Allow cookies and authentication headers if needed
+    origin: ["http://localhost:5173"], 
+    // or origin: "*" if you want to allow all origins
   })
 );
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 
+// 2) Parse incoming JSON
+app.use(express.json());
+
+// 3) Define routes
 app.use("/posts", postsRoute);
 app.use("/comments", commentsRoute);
 app.use("/auth", authRoutes);
