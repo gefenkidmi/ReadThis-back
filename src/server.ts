@@ -4,7 +4,7 @@ dotenv.config();
 import express, { Express } from "express";
 import cors from "cors";
 import mongoose from "mongoose";
-import bodyParser from "body-parser";
+// import bodyParser from "body-parser"; // Optional, can use express.json() instead.
 import swaggerJsDoc from "swagger-jsdoc";
 import path from "path";
 
