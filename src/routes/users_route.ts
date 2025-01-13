@@ -1,6 +1,9 @@
 import express from "express";
 const router = express.Router();
 import usersController from "../controllers/users_controller";
+import multer from "multer";
+const upload = multer();
+
 
 
 /**
@@ -66,7 +69,7 @@ import usersController from "../controllers/users_controller";
 *             schema:
 *               $ref: '#/components/schemas/User'
 */
-router.post("/register", usersController.register);
+router.post("/register", upload.single("image"), usersController.register);
 
 
 /**
