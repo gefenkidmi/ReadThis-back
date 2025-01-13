@@ -85,7 +85,14 @@
 >>>>>>> 88fc7d4 (Connect login and sign up to front)
     "multer": "^1.4.5-lts.1",
     "path": "^0.12.7",
+<<<<<<< HEAD
 >>>>>>> 512c427 (Connect login and sign up to front)
+=======
+=======
+    "mongoose": "^8.9.3",
+    "multer": "^1.4.5-lts.1",
+>>>>>>> 851e8c9 (connect the register api)
+>>>>>>> ddab4fd (connect the register api)
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   },
