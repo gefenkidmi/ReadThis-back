@@ -25,6 +25,7 @@
 <<<<<<< HEAD
 =======
     "mongoose": "^8.9.3",
+<<<<<<< HEAD
 >>>>>>> dd82393 (connect the register api)
 =======
 >>>>>>> 8b8b837 (Connect login and sign up to front)
@@ -34,6 +35,9 @@
     "mongoose": "^8.9.3",
     "multer": "^1.4.5-lts.1",
 >>>>>>> 851e8c9 (connect the register api)
+=======
+    "multer": "^1.4.5-lts.1",
+>>>>>>> 4b1381b (connect the register api)
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   },
