@@ -8,8 +8,16 @@ import commentsRoute from "./routes/comments_route";
 import authRoutes from "./routes/users_route";
 import swaggerJsDoc from "swagger-jsdoc";
 import swaggerUI from "swagger-ui-express";
+import cors from "cors";
 
 const app = express();
+
+app.use(
+  cors({
+    origin: "http://localhost:5173", // Allow frontend requests
+    credentials: true, // Allow cookies and authentication headers if needed
+  })
+);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/posts", postsRoute);
