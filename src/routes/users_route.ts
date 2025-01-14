@@ -13,16 +13,6 @@ import usersController from "../controllers/users_controller";
 /**
 * @swagger
 * components:
-*   securitySchemes:
-*     bearerAuth:
-*       type: http
-*       scheme: bearer
-*       bearerFormat: JWT
-*/
-
-/**
-* @swagger
-* components:
 *   schemas:
 *     User:
 *       type: object
