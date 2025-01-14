@@ -3,8 +3,11 @@ dotenv.config();
 
 import express, { Express } from "express";
 import mongoose from "mongoose";
-// import bodyParser from "body-parser"; // Optional, can use express.json() instead.
+
+
 import swaggerJsDoc from "swagger-jsdoc";
+import bodyParser from "body-parser"; // Optional, can use express.json() instead.
+import path from "path";
 
 
 // Routes
@@ -18,7 +21,18 @@ import cors from "cors";
 // Initialize app
 const app = express();
 
-// 1) Enable CORS (to allow requests from your React app at port 5173)
+app.use(
+  cors({
+    origin: "http://localhost:5173", // Allow frontend requests
+    credentials: true, // Allow cookies and authentication headers if needed
+  })
+);
+
+// 2) Parse incoming JSON
+app.use(express.json());
+
+// 3) Define routes
+app.use(cors());
 app.use(
   cors({
     origin: "http://localhost:5173", // Allow requests from your frontend
@@ -27,8 +41,6 @@ app.use(
   })
 );
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/posts", postsRoute);
 app.use("/comments", commentsRoute);
 app.use("/auth", authRoutes);
