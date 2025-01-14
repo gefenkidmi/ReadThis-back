@@ -2,26 +2,29 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express, { Express } from "express";
-import cors from "cors";
 import mongoose from "mongoose";
-// import bodyParser from "body-parser"; // Optional, can use express.json() instead.
-import swaggerJsDoc from "swagger-jsdoc";
 
-import swaggerUI from "swagger-ui-express";
+
+import swaggerJsDoc from "swagger-jsdoc";
+import bodyParser from "body-parser"; // Optional, can use express.json() instead.
+import path from "path";
+
 
 // Routes
 import postsRoute from "./routes/post_route";
 import commentsRoute from "./routes/comments_route";
-import authRoutes from "./routes/users_route"; // or "auth_route"
+import authRoutes from "./routes/users_route";
+import swaggerJsDoc from "swagger-jsdoc";
+import swaggerUI from "swagger-ui-express";
+import cors from "cors";
 
 // Initialize app
 const app = express();
 
-// 1) Enable CORS (to allow requests from your React app at port 5173)
 app.use(
   cors({
-    origin: ["http://localhost:5173"], 
-    // or origin: "*" if you want to allow all origins
+    origin: "http://localhost:5173", // Allow frontend requests
+    credentials: true, // Allow cookies and authentication headers if needed
   })
 );
 
@@ -38,8 +41,6 @@ app.use(
   })
 );
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/posts", postsRoute);
 app.use("/comments", commentsRoute);
 app.use("/auth", authRoutes);
