@@ -14,6 +14,9 @@ import swaggerUI from "swagger-ui-express";
 import postsRoute from "./routes/post_route";
 import commentsRoute from "./routes/comments_route";
 import authRoutes from "./routes/users_route"; // or "auth_route"
+import swaggerJsDoc from "swagger-jsdoc";
+import swaggerUI from "swagger-ui-express";
+import cors from "cors";
 
 // Initialize app
 const app = express();
@@ -32,6 +35,17 @@ app.use(
 app.use(express.json());
 
 // 3) Define routes
+app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173", // Allow requests from your frontend
+    methods: "GET,POST,PUT,DELETE",
+    allowedHeaders: "Content-Type,Authorization",
+  })
+);
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/posts", postsRoute);
 app.use("/comments", commentsRoute);
 app.use("/auth", authRoutes);
