@@ -18,12 +18,15 @@ import cors from "cors";
 // Initialize app
 const app = express();
 
+app.use(cors());
 app.use(
   cors({
-    origin: "http://localhost:5173", // Allow frontend requests
-    credentials: true, // Allow cookies and authentication headers if needed
+    origin: "http://localhost:5173", // Allow requests from your frontend
+    methods: "GET,POST,PUT,DELETE",
+    allowedHeaders: "Content-Type,Authorization",
   })
 );
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/posts", postsRoute);

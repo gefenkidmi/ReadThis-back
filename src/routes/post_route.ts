@@ -29,7 +29,7 @@ import authMiddleware from "../common/auth_middleware";
  *         content:
  *           type: string
  *           example: This is the content of the post.
- *         author:
+ *         owner:
  *           type: string
  *           example: 60d0fe4f5311236168a109ca
  */
@@ -93,8 +93,6 @@ router.get("/:id", postsController.getById.bind(postsController));
  *     description: Creates a new post
  *     tags:
  *       - Posts
- *     security:
- *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -115,7 +113,7 @@ router.get("/:id", postsController.getById.bind(postsController));
  *       '500':
  *         description: Internal server error
  */
-router.post("/", authMiddleware, postsController.create.bind(postsController));
+router.post("/", postsController.create.bind(postsController));
 
 /**
  * @swagger
