@@ -22,10 +22,14 @@
     "jsonwebtoken": "^9.0.2",
 <<<<<<< HEAD
     "mongoose": "^8.9.5",
+<<<<<<< HEAD
 =======
     "mongoose": "^8.9.3",
 >>>>>>> dd82393 (connect the register api)
+=======
+>>>>>>> 8b8b837 (Connect login and sign up to front)
     "multer": "^1.4.5-lts.1",
+    "path": "^0.12.7",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   },

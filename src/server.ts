@@ -6,7 +6,6 @@ import cors from "cors";
 import mongoose from "mongoose";
 // import bodyParser from "body-parser"; // Optional, can use express.json() instead.
 import swaggerJsDoc from "swagger-jsdoc";
-import path from "path";
 
 import swaggerUI from "swagger-ui-express";
 
@@ -17,8 +16,6 @@ import authRoutes from "./routes/users_route"; // or "auth_route"
 
 // Initialize app
 const app = express();
-
-app.use("/public", express.static(path.join(__dirname, "../public")));
 
 // 1) Enable CORS (to allow requests from your React app at port 5173)
 app.use(
