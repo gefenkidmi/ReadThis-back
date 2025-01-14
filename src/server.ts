@@ -20,18 +20,6 @@ import cors from "cors";
 
 // Initialize app
 const app = express();
-
-app.use(
-  cors({
-    origin: "http://localhost:5173", // Allow frontend requests
-    credentials: true, // Allow cookies and authentication headers if needed
-  })
-);
-
-// 2) Parse incoming JSON
-app.use(express.json());
-
-// 3) Define routes
 app.use(cors());
 app.use(
   cors({
