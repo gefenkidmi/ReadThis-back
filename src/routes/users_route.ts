@@ -29,6 +29,7 @@ import usersController from "../controllers/users_controller";
 *       required:
 *         - email
 *         - password
+*         - username
 *       properties:
 *         email:
 *           type: string
@@ -36,8 +37,12 @@ import usersController from "../controllers/users_controller";
 *         password:
 *           type: string
 *           description: The user password
+*         username:
+*           type: String
+*           description: The user username
 *       example:
 *         email: 'ziv@gmail.com'
+*         username: 'ziv'
 *         password: '123456'
 */
 
