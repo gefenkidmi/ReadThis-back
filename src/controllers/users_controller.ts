@@ -6,11 +6,22 @@ import { Document } from "mongoose";
 
 const register = async (req: Request, res: Response) => {
   try {
+    const { email, username } = req.body;
+    const existingUser = await userModel.findOne({ 
+      $or: [{ email }, { username }]
+    });
+
+    if (existingUser) {
+      res.status(400).json({
+        message: "Username or Email already exists. Please try a different one.",
+      });
+    }
     const password = req.body.password;
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     const user = await userModel.create({
       email: req.body.email,
+      username: req.body.username,
       password: hashedPassword,
     });
     res.status(200).send(user);
@@ -54,7 +65,7 @@ const generateToken = (userId: string): tTokens | null => {
 
 const login = async (req: Request, res: Response) => {
   try {
-    const user = await userModel.findOne({ email: req.body.email });
+    const user = await userModel.findOne({ username: req.body.username });
     if (!user) {
       res.status(400).send("wrong username or password");
       return;
