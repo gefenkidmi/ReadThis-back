@@ -21,6 +21,7 @@
     "express": "^4.21.1",
     "jsonwebtoken": "^9.0.2",
 <<<<<<< HEAD
+<<<<<<< HEAD
     "mongoose": "^8.9.5",
 <<<<<<< HEAD
 =======
@@ -33,6 +34,9 @@
     "path": "^0.12.7",
 =======
     "mongoose": "^8.9.3",
+=======
+    "mongoose": "^8.9.5",
+>>>>>>> 5cd4454 (fix swagger conflict)
     "multer": "^1.4.5-lts.1",
 >>>>>>> 851e8c9 (connect the register api)
 =======
