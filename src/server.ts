@@ -14,9 +14,6 @@ import swaggerUI from "swagger-ui-express";
 import postsRoute from "./routes/post_route";
 import commentsRoute from "./routes/comments_route";
 import authRoutes from "./routes/users_route"; // or "auth_route"
-import swaggerJsDoc from "swagger-jsdoc";
-import swaggerUI from "swagger-ui-express";
-import cors from "cors";
 
 // Initialize app
 const app = express();
