@@ -20,85 +20,9 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.1",
     "jsonwebtoken": "^9.0.2",
-<<<<<<< HEAD
-    "mongoose": "^8.9.5",
-
     "multer": "^1.4.5-lts.1",
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     "mongoose": "^8.9.5",
-<<<<<<< HEAD
-=======
-    "mongoose": "^8.9.3",
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> dd82393 (connect the register api)
-=======
->>>>>>> 8b8b837 (Connect login and sign up to front)
-=======
-=======
->>>>>>> 01d0b42 (fix swagger conflict)
-=======
->>>>>>> c97e013 (connect the register api)
-    "mongoose": "^8.9.5",
-
-=======
-    "mongoose": "^8.9.3",
->>>>>>> 851e8c9 (connect the register api)
-<<<<<<< HEAD
->>>>>>> c2a18e0 (connect the register api)
-=======
-=======
-    "mongoose": "^8.9.5",
->>>>>>> efc74f1 (fix swagger conflict)
-<<<<<<< HEAD
->>>>>>> 01d0b42 (fix swagger conflict)
-=======
-=======
-    "mongoose": "^8.9.5",
-<<<<<<< HEAD
-=======
-    "mongoose": "^8.9.3",
->>>>>>> dd82393 (connect the register api)
-<<<<<<< HEAD
->>>>>>> 39eb040 (connect the register api)
-<<<<<<< HEAD
->>>>>>> c97e013 (connect the register api)
-    "multer": "^1.4.5-lts.1",
     "path": "^0.12.7",
-=======
-    "mongoose": "^8.9.3",
-=======
-    "mongoose": "^8.9.5",
->>>>>>> 5cd4454 (fix swagger conflict)
-    "multer": "^1.4.5-lts.1",
->>>>>>> 851e8c9 (connect the register api)
-=======
-    "multer": "^1.4.5-lts.1",
->>>>>>> 4b1381b (connect the register api)
-=======
-    "multer": "^1.4.5-lts.1",
->>>>>>> dd82393 (connect the register api)
-=======
-=======
-=======
->>>>>>> 8b8b837 (Connect login and sign up to front)
->>>>>>> 88fc7d4 (Connect login and sign up to front)
-    "multer": "^1.4.5-lts.1",
-    "path": "^0.12.7",
-<<<<<<< HEAD
->>>>>>> 512c427 (Connect login and sign up to front)
-=======
-=======
-    "mongoose": "^8.9.3",
-    "multer": "^1.4.5-lts.1",
->>>>>>> 851e8c9 (connect the register api)
->>>>>>> ddab4fd (connect the register api)
->>>>>>> Auth
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   },
