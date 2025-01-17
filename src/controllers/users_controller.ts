@@ -3,6 +3,8 @@ import userModel, { IUser } from "../models/users_model";
 import bcrypt from "bcrypt";
 import jwt, { VerifyErrors } from "jsonwebtoken";
 import { Document } from "mongoose";
+import path from "path";
+import fs from "fs";
 
 const register = async (req: Request, res: Response) => {
   try {
@@ -11,11 +13,26 @@ const register = async (req: Request, res: Response) => {
       $or: [{ email }, { username }]
     });
 
+    if (!req.file) {
+      res.status(400).json({ message: "Profile image is required." });
+      return;
+    }
+
     if (existingUser) {
       res.status(400).json({
         message: "Username or Email already exists. Please try a different one.",
       });
     }
+
+    const targetDir = path.join(__dirname, "../uploads/profile");
+    if (!fs.existsSync(targetDir)) {
+      fs.mkdirSync(targetDir, { recursive: true });
+    }
+
+    const targetPath = path.join(targetDir, `${username}.png`);
+
+    fs.renameSync(req.file.path, targetPath);
+    const imageUrl = `/uploads/profile/${username}.png`;
     const password = req.body.password;
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -23,6 +40,7 @@ const register = async (req: Request, res: Response) => {
       email: req.body.email,
       username: req.body.username,
       password: hashedPassword,
+      imageUrl: imageUrl
     });
     res.status(200).send(user);
   } catch (err) {
