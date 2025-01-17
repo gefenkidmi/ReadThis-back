@@ -5,6 +5,8 @@ import express, { Express } from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import bodyParser from "body-parser";
+
+
 import swaggerJsDoc from "swagger-jsdoc";
 import path from "path";
 
@@ -43,6 +45,7 @@ app.use(
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
 app.use("/posts", postsRoute);
 app.use("/comments", commentsRoute);
 app.use("/auth", authRoutes);
@@ -67,6 +70,7 @@ const initApp = (): Promise<Express> => {
       .catch((error) => reject(error));
   });
 };
+
 
 // 5) Swagger setup (optional, for API docs)
 const options = {
