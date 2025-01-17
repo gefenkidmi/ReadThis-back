@@ -23,6 +23,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     "mongoose": "^8.9.5",
 <<<<<<< HEAD
 =======
@@ -33,12 +34,20 @@
 =======
 >>>>>>> 8b8b837 (Connect login and sign up to front)
 =======
+=======
+>>>>>>> 01d0b42 (fix swagger conflict)
     "mongoose": "^8.9.5",
 
 =======
     "mongoose": "^8.9.3",
 >>>>>>> 851e8c9 (connect the register api)
+<<<<<<< HEAD
 >>>>>>> c2a18e0 (connect the register api)
+=======
+=======
+    "mongoose": "^8.9.5",
+>>>>>>> efc74f1 (fix swagger conflict)
+>>>>>>> 01d0b42 (fix swagger conflict)
     "multer": "^1.4.5-lts.1",
     "path": "^0.12.7",
 =======
