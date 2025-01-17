@@ -4,7 +4,9 @@ dotenv.config();
 import express, { Express } from "express";
 import cors from "cors";
 import mongoose from "mongoose";
-// import bodyParser from "body-parser"; // Optional, can use express.json() instead.
+import bodyParser from "body-parser";
+
+
 import swaggerJsDoc from "swagger-jsdoc";
 import path from "path";
 
@@ -32,6 +34,18 @@ app.use(
 app.use(express.json());
 
 // 3) Define routes
+app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173", // Allow requests from your frontend
+    methods: "GET,POST,PUT,DELETE",
+    allowedHeaders: "Content-Type,Authorization",
+  })
+);
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
 app.use("/posts", postsRoute);
 app.use("/comments", commentsRoute);
 app.use("/auth", authRoutes);
@@ -56,6 +70,7 @@ const initApp = (): Promise<Express> => {
       .catch((error) => reject(error));
   });
 };
+
 
 // 5) Swagger setup (optional, for API docs)
 const options = {

@@ -16,16 +16,6 @@ const upload = multer();
 /**
 * @swagger
 * components:
-*   securitySchemes:
-*     bearerAuth:
-*       type: http
-*       scheme: bearer
-*       bearerFormat: JWT
-*/
-
-/**
-* @swagger
-* components:
 *   schemas:
 *     User:
 *       type: object

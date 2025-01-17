@@ -11,7 +11,6 @@ class PostsController extends BaseController<IPost> {
     const userId = req.params.userId;
     const post = {
       ...req.body,
-      owner: userId,
     };
     req.body = post;
     super.createItem(req, res);
