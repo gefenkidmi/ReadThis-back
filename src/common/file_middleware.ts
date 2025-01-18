@@ -10,24 +10,23 @@ declare global {
   }
 }
 
-// Configure multer storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, "../uploads/temp"); // Temporary storage
+    const uploadPath = path.join(__dirname, "../uploads/temp");
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
-    cb(null, uploadPath); // Save in temp folder
+    cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    cb(null, file.originalname); // Keep the original name
+    cb(null, file.originalname);
   },
 });
 
-// Initialize multer
+
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png/;
     const isValidType =
