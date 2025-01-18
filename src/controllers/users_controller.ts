@@ -6,6 +6,7 @@ import { Document } from "mongoose";
 import path from "path";
 import fs from "fs";
 
+
 const register = async (req: Request, res: Response) => {
   try {
     const { email, username } = req.body;
