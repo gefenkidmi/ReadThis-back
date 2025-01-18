@@ -11,27 +11,39 @@ class PostsController extends BaseController<IPost> {
 
   async create(req: Request, res: Response) {
     try {
-      const { title, content } = req.body;
+      const { title, content, owner } = req.body;
+  
+      if (!title || !content || !owner) {
+        res.status(400).json({ message: "Title, content, and owner are required." });
+        return;
+      }
   
       if (!req.file) {
         res.status(400).json({ message: "Post image is required." });
         return;
       }
+  
       const targetDir = path.join(__dirname, "../uploads/posts");
       if (!fs.existsSync(targetDir)) {
         fs.mkdirSync(targetDir, { recursive: true });
       }
+  
       const imageName = new Date().toISOString().replace(/[:.]/g, "-");
       const targetPath = path.join(targetDir, `${imageName}.png`);
+  
       fs.renameSync(req.file.path, targetPath);
+  
       const imageUrl = `/uploads/posts/${imageName}.png`;
+  
       const newPost = new postModel({
         title,
         content,
         imageUrl,
+        owner,
       });
   
       await newPost.save();
+  
       res.status(201).json({ message: "Post created successfully.", post: newPost });
     } catch (error) {
       console.error("Error creating post:", error);

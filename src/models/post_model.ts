@@ -13,10 +13,10 @@ const postSchema = new mongoose.Schema<IPost>({
     required: true,
   },
   content: String,
-  // owner: {
-  //   type: String,
-  //   required: true,
-  // },
+  owner: {
+    type: String,
+    required: true,
+  },
   imageUrl: {
     type: String
   }
