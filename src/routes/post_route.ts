@@ -2,6 +2,7 @@ import express from "express";
 const router = express.Router();
 import postsController from "../controllers/post_controller";
 import authMiddleware from "../common/auth_middleware";
+import upload from "../common/file_middleware";
 
 /**
 * @swagger
@@ -113,7 +114,7 @@ router.get("/:id", postsController.getById.bind(postsController));
  *       '500':
  *         description: Internal server error
  */
-router.post("/", postsController.create.bind(postsController));
+router.post("/", upload.single("image"), postsController.create);
 
 /**
  * @swagger
