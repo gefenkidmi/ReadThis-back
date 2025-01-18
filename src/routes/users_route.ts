@@ -4,8 +4,6 @@ import usersController from "../controllers/users_controller";
 import upload from "../common/file_middleware";
 
 
-
-
 /**
 * @swagger
 * tags:
