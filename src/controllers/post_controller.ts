@@ -4,8 +4,6 @@ import { AuthRequest } from "../common/auth_middleware";
 import BaseController from "./base_controller";
 import path from "path";
 import fs from "fs";
-import path from "path";
-import fs from "fs";
 
 class PostsController extends BaseController<IPost> {
   constructor() {
