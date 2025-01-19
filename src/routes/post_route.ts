@@ -5,11 +5,11 @@ import authMiddleware from "../common/auth_middleware";
 import upload from "../common/file_middleware";
 
 /**
-* @swagger
-* tags:
-*   name: Posts
-*   description: The Posts managing API
-*/
+ * @swagger
+ * tags:
+ *   name: Posts
+ *   description: The Posts managing API
+ */
 
 /**
  * @swagger
@@ -149,5 +149,6 @@ router.delete(
   postsController.deleteItem.bind(postsController)
 );
 
-export default router;
+router.post("/like/:id", authMiddleware, postsController.like.bind(postsController));
 
+export default router;

@@ -1,10 +1,12 @@
-import mongoose from "mongoose";
+import mongoose, { PopulatedDoc } from "mongoose";
+import { IUser } from "./users_model";
 
 export interface IPost {
   title: string;
   content: string;
-  owner: string;
+  owner: PopulatedDoc<IUser>;
   imageUrl: string;
+  usersWhoLiked: string[];
 }
 
 const postSchema = new mongoose.Schema<IPost>({
@@ -14,15 +16,20 @@ const postSchema = new mongoose.Schema<IPost>({
   },
   content: String,
   owner: {
-    type: String,
-    required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
   },
   imageUrl: {
-    type: String
-  }
+    type: String,
+  },
+  usersWhoLiked: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
 });
 
 const postModel = mongoose.model<IPost>("Posts", postSchema);
 
 export default postModel;
-
