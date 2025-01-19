@@ -25,7 +25,6 @@ class PostsController extends BaseController<IPost> {
         res.status(400).json({ message: "Post image is required." });
         return;
       }
-
       const targetDir = path.join(__dirname, "../uploads/posts");
       if (!fs.existsSync(targetDir)) {
         fs.mkdirSync(targetDir, { recursive: true });
@@ -146,3 +145,4 @@ class PostsController extends BaseController<IPost> {
 }
 
 export default new PostsController();
+
