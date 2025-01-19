@@ -56,45 +56,44 @@ class PostsController extends BaseController<IPost> {
     }
   }
 
-  async like(req: AuthRequest, res: Response) {
+  async like(req: AuthRequest, res: Response): Promise<void> {
     const postId = req.params.id;
-
+  
     try {
-      // בדיקה אם req.user מוגדר
+      // Ensure the user is authenticated
       if (!req.user) {
-        return res
-          .status(401)
-          .send({ message: "Unauthorized: User not logged in" });
+        res.status(401).json({ message: "Unauthorized: User not logged in" });
+        return;
       }
-
-      const userId = req.user._id; // לאחר הבדיקה, TypeScript מבין שהמשתנה קיים
-
-      // שליפת הפוסט לפי ID
-      const requestedPost = await this.model
-        .findById(postId)
-        .select("usersWhoLiked");
-      if (!requestedPost) {
-        return res.status(404).send({ message: "Post not found" });
+  
+      const userId = req.user._id; // User ID from the authenticated request
+  
+      // Find the post by its ID
+      const post = await postModel.findById(postId).select("usersWhoLiked");
+      if (!post) {
+        res.status(404).json({ message: "Post not found" });
+        return;
       }
-
-      // בדיקה אם המשתמש כבר עשה לייק
-      if (requestedPost.usersWhoLiked.find((id) => id.toString() === userId)) {
-        return res
-          .status(400)
-          .send({ message: "User already liked this post" });
+  
+      // Check if the user has already liked the post
+      const alreadyLiked = post.usersWhoLiked.some((id) => id.toString() === userId);
+      if (alreadyLiked) {
+        res.status(400).json({ message: "User already liked this post" });
+        return;
       }
-
-      // הוספת המשתמש למערך הלייקים
-      requestedPost.usersWhoLiked.push(userId);
-
-      // שמירה
-      await requestedPost.save();
-
-      res.status(200).send(requestedPost);
-    } catch (err: any) {
-      console.error("Error in like function:", err);
-      res.status(500).send({
-        message: err.message || "An error occurred while liking the post",
+  
+      // Add the user to the "usersWhoLiked" array
+      post.usersWhoLiked.push(userId);
+  
+      // Save the updated post
+      await post.save();
+  
+      res.status(200).json({ message: "Post liked successfully", post });
+    } catch (error: any) {
+      console.error("Error in like function:", error);
+      res.status(500).json({
+        message: "An error occurred while liking the post",
+        error: error.message,
       });
     }
   }

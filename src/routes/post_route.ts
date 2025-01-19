@@ -149,4 +149,6 @@ router.delete(
   postsController.deleteItem.bind(postsController)
 );
 
+router.post("/like/:id", authMiddleware, postsController.like.bind(postsController));
+
 export default router;
