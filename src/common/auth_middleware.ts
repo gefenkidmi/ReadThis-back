@@ -1,11 +1,21 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
+export interface AuthRequest extends Request {
+  user?: { _id: string };
+}
+
+/*
 type Payload = {
   _id: string;
 };
+*/
 
-const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+const authMiddleware = (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
   const authorization = req.header("authorization");
 
   const token = authorization && authorization.split(" ")[1];
@@ -19,13 +29,13 @@ const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
     return;
   }
 
-  jwt.verify(token, process.env.TOKEN_SECRET, (err, payload) => {
+  jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
     if (err) {
       res.status(401).send("Access Denied");
       return;
     }
 
-    req.params.userId = (payload as Payload)._id;
+    req.user = user as { _id: string };
     next();
   });
 };
