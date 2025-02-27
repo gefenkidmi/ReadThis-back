@@ -149,9 +149,16 @@ router.delete(
   postsController.deleteItem.bind(postsController)
 );
 
-<<<<<<< HEAD
-router.post("/like/:id", authMiddleware, postsController.like.bind(postsController));
+router.post(
+  "/like/:id",
+  authMiddleware,
+  postsController.like.bind(postsController)
+);
 
-=======
->>>>>>> d1a9ec3 (add like and unlike to post controller)
+router.post(
+  "/unlike/:id",
+  authMiddleware,
+  postsController.unlike.bind(postsController)
+);
+
 export default router;

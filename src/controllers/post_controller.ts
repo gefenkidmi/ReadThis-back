@@ -61,9 +61,8 @@ class PostsController extends BaseController<IPost> {
     try {
       // בדיקה אם req.user מוגדר
       if (!req.user) {
-        return res
-          .status(401)
-          .send({ message: "Unauthorized: User not logged in" });
+        res.status(401).send({ message: "Unauthorized: User not logged in" });
+        return;
       }
 
       const userId = req.user._id; // לאחר הבדיקה, TypeScript מבין שהמשתנה קיים
@@ -73,14 +72,14 @@ class PostsController extends BaseController<IPost> {
         .findById(postId)
         .select("usersWhoLiked");
       if (!requestedPost) {
-        return res.status(404).send({ message: "Post not found" });
+        res.status(404).send({ message: "Post not found" });
+        return;
       }
 
       // בדיקה אם המשתמש כבר עשה לייק
       if (requestedPost.usersWhoLiked.find((id) => id.toString() === userId)) {
-        return res
-          .status(400)
-          .send({ message: "User already liked this post" });
+        res.status(400).send({ message: "User already liked this post" });
+        return;
       }
 
       // הוספת המשתמש למערך הלייקים
@@ -98,51 +97,51 @@ class PostsController extends BaseController<IPost> {
     }
   }
 
-  async unlike(req: AuthRequest, res: Response) {
+  async unlike(req: AuthRequest, res: Response): Promise<void> {
     const postId = req.params.id;
 
     try {
-      // בדיקה אם req.user מוגדר
+      // בדיקה אם המשתמש מחובר
       if (!req.user) {
-        return res
-          .status(401)
-          .send({ message: "Unauthorized: User not logged in" });
+        res.status(401).json({ message: "Unauthorized: User not logged in" });
+        return;
       }
 
       const userId = req.user._id;
 
       // שליפת הפוסט לפי ID
-      const requestedPost = await this.model
-        .findById(postId)
-        .select("usersWhoLiked");
-      if (!requestedPost) {
-        return res.status(404).send({ message: "Post not found" });
+      const post = await postModel.findById(postId).select("usersWhoLiked");
+      if (!post) {
+        res.status(404).json({ message: "Post not found" });
+        return;
       }
 
       // בדיקה אם המשתמש עשה לייק
-      if (!requestedPost.usersWhoLiked.find((id) => id.toString() === userId)) {
-        return res
-          .status(400)
-          .send({ message: "User has not liked this post" });
+      const alreadyLiked = post.usersWhoLiked.some(
+        (id) => id.toString() === userId
+      );
+      if (!alreadyLiked) {
+        res.status(400).json({ message: "User has not liked this post" });
+        return;
       }
 
       // הסרת המשתמש ממערך הלייקים
-      requestedPost.usersWhoLiked = requestedPost.usersWhoLiked.filter(
+      post.usersWhoLiked = post.usersWhoLiked.filter(
         (id) => id.toString() !== userId
       );
 
-      // שמירה
-      await requestedPost.save();
+      // שמירה של הפוסט המעודכן
+      await post.save();
 
-      res.status(200).send(requestedPost);
-    } catch (err: any) {
-      console.error("Error in unlike function:", err);
-      res.status(500).send({
-        message: err.message || "An error occurred while unliking the post",
+      res.status(200).json({ message: "Post unliked successfully", post });
+    } catch (error: any) {
+      console.error("Error in unlike function:", error);
+      res.status(500).json({
+        message: "An error occurred while unliking the post",
+        error: error.message,
       });
     }
   }
 }
 
 export default new PostsController();
-
