@@ -55,6 +55,14 @@ class PostsController extends BaseController<IPost> {
     }
   }
 
+  async getAll(req: AuthRequest, res: Response) {
+    super.getAllPopulated(req, res, "owner comments.user", "username image");
+  }
+
+  async getById(req: AuthRequest, res: Response) {
+    super.getByIdPopulated(req, res, "owner comments.user", "username image");
+  }
+
   async like(req: AuthRequest, res: Response) {
     const postId = req.params.id;
 
