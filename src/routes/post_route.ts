@@ -161,4 +161,10 @@ router.post(
   postsController.unlike.bind(postsController)
 );
 
+router.post(
+  "/comment/:id",
+  authMiddleware,
+  postsController.addComment.bind(postsController)
+);
+
 export default router;

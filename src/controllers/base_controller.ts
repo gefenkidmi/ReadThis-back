@@ -13,11 +13,9 @@ class BaseController<T> {
     try {
       if (filter) {
         const posts = await this.model.find({ owner: filter });
-        console.log(posts);
         res.send(posts);
       } else {
         const posts = await this.model.find();
-        console.log(posts);
         res.send(posts);
       }
     } catch (error) {
@@ -33,7 +31,6 @@ class BaseController<T> {
   ) {
     try {
       const obj = await this.model.find().populate(path, select);
-      console.log(obj);
       if (!obj) res.status(404);
       res.send(obj);
     } catch (error) {
