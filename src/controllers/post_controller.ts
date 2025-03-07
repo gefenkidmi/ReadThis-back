@@ -150,6 +150,46 @@ class PostsController extends BaseController<IPost> {
       });
     }
   }
+
+  async addComment(req: AuthRequest, res: Response) {
+    console.log(req);
+    try {
+      if (!req.body.text || !req.user) {
+        res.status(400).json({ message: "Missing required fields." });
+        return;
+      }
+
+      const postId = req.params.id;
+      const comment = { text: req.body.text, user: req.user._id };
+
+      // עדכון הפוסט עם הוספת התגובה
+      const updatedPost = await this.model
+        .findByIdAndUpdate(
+          postId,
+          { $push: { comments: comment } },
+          { new: true }
+        )
+        .populate("comments.user", "username image"); // לוודא שהמשתמש נטען עם התגובה
+
+      if (!updatedPost) {
+        res.status(404).json({ message: "Post not found" });
+        return;
+      }
+
+      const newComment =
+        updatedPost.comments?.[updatedPost.comments.length - 1] ?? null;
+
+      if (!newComment) {
+        res.status(500).json({ message: "Failed to retrieve new comment." });
+        return;
+      }
+
+      res.status(201).json(newComment);
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      res.status(500).json({ message: "Failed to add comment." });
+    }
+  }
 }
 
 export default new PostsController();

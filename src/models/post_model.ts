@@ -29,15 +29,18 @@ const postSchema = new mongoose.Schema<IPost>({
       ref: "User",
     },
   ],
-  comments: [
-    {
-      user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+  comments: {
+    type: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        text: String,
       },
-      text: String,
-    },
-  ],
+    ],
+    default: [], // 👈 הוספת ברירת מחדל למערך ריק
+  },
 });
 
 const postModel = mongoose.model<IPost>("Posts", postSchema);
