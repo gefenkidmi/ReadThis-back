@@ -21,21 +21,19 @@ class PostsController extends BaseController<IPost> {
         return;
       }
 
-      if (!req.file) {
-        res.status(400).json({ message: "Post image is required." });
-        return;
+      let imageUrl = "";
+      if (req.file) {
+        const targetDir = path.join(__dirname, "../uploads/posts");
+        if (!fs.existsSync(targetDir)) {
+          fs.mkdirSync(targetDir, { recursive: true });
+        }
+
+        const imageName = new Date().toISOString().replace(/[:.]/g, "-");
+        const targetPath = path.join(targetDir, `${imageName}.png`);
+
+        fs.renameSync(req.file.path, targetPath);
+        imageUrl = `/uploads/posts/${imageName}.png`; // שמירת הנתיב של התמונה
       }
-      const targetDir = path.join(__dirname, "../uploads/posts");
-      if (!fs.existsSync(targetDir)) {
-        fs.mkdirSync(targetDir, { recursive: true });
-      }
-
-      const imageName = new Date().toISOString().replace(/[:.]/g, "-");
-      const targetPath = path.join(targetDir, `${imageName}.png`);
-
-      fs.renameSync(req.file.path, targetPath);
-
-      const imageUrl = `/uploads/posts/${imageName}.png`;
 
       const newPost = new postModel({
         title,
