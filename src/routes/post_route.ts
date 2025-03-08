@@ -59,6 +59,19 @@ router.get("/", postsController.getAll.bind(postsController));
 
 /**
  * @swagger
+ * /posts/my-posts:
+ *   get:
+ *     summary: Get logged-in user's posts
+ *     tags: [Posts]
+ *     responses:
+ *       200:
+ *         description: User's posts fetched successfully
+ */
+router.get('/my-posts', authMiddleware, postsController.getMyPosts);
+
+
+/**
+ * @swagger
  * /posts/{id}:
  *   get:
  *     summary: Get a post by ID
@@ -166,5 +179,39 @@ router.post(
   authMiddleware,
   postsController.addComment.bind(postsController)
 );
+
+
+
+/**
+ * @swagger
+ * /posts/{id}:
+ *   put:
+ *     summary: Update a user's post
+ *     tags: [Posts]
+ *     parameters:
+ *       - in: path
+ *         name: postId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               content:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Post updated successfully
+ */
+router.put('/:id', authMiddleware, upload.single("image"), postsController.updatePost);
 
 export default router;
