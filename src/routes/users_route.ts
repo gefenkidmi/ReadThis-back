@@ -2,6 +2,7 @@ import express from "express";
 const router = express.Router();
 import usersController from "../controllers/users_controller";
 import upload from "../common/file_middleware";
+import authMiddleware from "../common/auth_middleware";
 
 
 /**
@@ -169,5 +170,65 @@ router.post("/logout", usersController.logout);
  *         description: Internal server error
  */
 router.post("/refresh", usersController.refresh);
+
+
+/**
+ * @swagger
+ * /auth/me:
+ *   get:
+ *     summary: Get current user's profile
+ *     description: Fetches the details of the authenticated user
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: User profile successfully retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       '401':
+ *         description: Unauthorized - invalid or missing token
+ *       '404':
+ *         description: User not found
+ *       '500':
+ *         description: Internal server error
+ */
+router.get("/me", authMiddleware, usersController.getMyProfile);
+
+/**
+ * @swagger
+ * /auth/profile:
+ *   put:
+ *     summary: Update user profile
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: User updated successfully
+ *       400:
+ *         description: Bad request
+ */
+router.put(
+    "/profile",
+    authMiddleware,
+    upload.single("image"),
+    usersController.updateProfile
+  );
 
 export default router;

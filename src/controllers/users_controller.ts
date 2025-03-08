@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 import path from "path";
 import fs from "fs";
 
-const register = async (req: AuthRequest, res: Response) => {
+const register = async (req: AuthRequest, res: Response):Promise<void> => {
   try {
     const { email, username, password } = req.body;
 
@@ -17,36 +17,38 @@ const register = async (req: AuthRequest, res: Response) => {
 
     if (!req.file) {
       res.status(400).json({ message: "Profile image is required." });
-      return;
     }
 
     if (existingUser) {
-      res.status(400).json({
+        res.status(400).json({
         message: "Username or Email already exists. Please try a different one.",
       });
-      return;
     }
+
+    // Hash the password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create the user first (without the imageUrl)
+    const user = await userModel.create({
+      email,
+      username,
+      password: hashedPassword,
+      imageUrl: "", // Temporarily empty
+    });
 
     const targetDir = path.join(__dirname, "../uploads/profile");
     if (!fs.existsSync(targetDir)) {
       fs.mkdirSync(targetDir, { recursive: true });
     }
 
-    const targetPath = path.join(targetDir, `${username}.png`);
+    // Now rename the image to use the user's ID as filename
+    const targetPath = path.join(targetDir, `${user._id}.png`);
     fs.renameSync(req.file.path, targetPath);
-    const imageUrl = `/uploads/profile/${username}.png`;
 
-    // Hash the password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create a new user
-    const user = await userModel.create({
-      email,
-      username,
-      password: hashedPassword,
-      imageUrl,
-    });
+    // Update the imageUrl with the correct path
+    user.imageUrl = `/uploads/profile/${user._id}.png`;
+    await user.save();
 
     res.status(200).send(user);
   } catch (err) {
@@ -189,9 +191,58 @@ const refresh = async (req: AuthRequest, res: Response) => {
   }
 };
 
+const getMyProfile = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?._id;
+    if (!userId) {
+      res.status(401).send("Unauthorized: No user ID provided.");
+      return;
+    }
+
+    const user = await userModel.findById(userId).select("-password -refreshToken");
+    if (!user) {
+      res.status(404).send("User not found");
+      return;
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).send({ message: "Server Error", error });
+  }
+};
+
+export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?._id;
+    if (!userId) {
+      res.status(401).send("Unauthorized");
+      return;
+    }
+
+    const updateData: any = { username: req.body.username };
+
+    if (req.file) {
+      const targetDir = path.join(__dirname, "../uploads/profile");
+      if (!fs.existsSync(targetDir)) {
+        fs.mkdirSync(targetDir, { recursive: true });
+      }
+      const imageUrl = `/uploads/profile/${userId}.png`;
+      fs.renameSync(req.file.path, path.join(targetDir, `${userId}.png`));
+      updateData.imageUrl = imageUrl;
+    }
+
+    const user = await userModel.findByIdAndUpdate(userId, updateData, { new: true });
+    res.status(200).send(user);
+  } catch (err) {
+    res.status(500).send(err);
+  }
+};
+
 export default {
   register,
   login,
   refresh,
   logout,
+  getMyProfile,
+  updateProfile
 };
