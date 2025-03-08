@@ -40,6 +40,7 @@ app.use(
 app.use("/posts", postsRoute);
 app.use("/comments", commentsRoute);
 app.use("/auth", authRoutes);
+app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 
 // 4) Connect to MongoDB
 const db = mongoose.connection;
