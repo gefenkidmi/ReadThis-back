@@ -190,6 +190,56 @@ class PostsController extends BaseController<IPost> {
       res.status(500).json({ message: "Failed to add comment." });
     }
   }
+
+  async getMyPosts(req: AuthRequest, res: Response) {
+    try {
+      if (!req.user) {
+        res.status(401).send({ message: "Unauthorized" });
+        return;
+      }
+      const posts = await postModel.find({ owner: req.user._id });
+      res.status(200).json(posts);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  }
+
+  async updatePost(req: AuthRequest, res: Response): Promise<void> {
+    const postId = req.params.id;
+
+    try {
+      if (!req.user) {
+        res.status(401).send({ message: "Unauthorized" });
+        return;
+      }
+
+      const post = await postModel.findOne({ _id: postId, owner: req.user._id });
+      if (!post) {
+        res.status(404).send({ message: "Post not found or unauthorized" });
+        return;
+      }
+
+      const { title, content } = req.body;
+      if (title) post.title = title;
+      if (content) post.content = content;
+
+      if (req.file) {
+        const targetDir = path.join(__dirname, "../uploads/posts");
+        if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
+
+        const imageName = `${postId}.png`;
+        const targetPath = path.join(targetDir, imageName);
+        fs.renameSync(req.file.path, targetPath);
+
+        post.imageUrl = `/uploads/posts/${imageName}`;
+      }
+
+      await post.save();
+      res.status(200).json(post);
+    } catch (err: any) {
+      res.status(500).send({ message: err.message });
+    }
+  }
 }
 
 export default new PostsController();
