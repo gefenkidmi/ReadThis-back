@@ -203,6 +203,7 @@ class PostsController extends BaseController<IPost> {
   }
 
   async updatePost(req: AuthRequest, res: Response): Promise<void> {
+    console.log("update");
     const postId = req.params.id;
 
     try {
@@ -211,7 +212,13 @@ class PostsController extends BaseController<IPost> {
         return;
       }
 
-      const post = await postModel.findOne({ _id: postId, owner: req.user._id });
+      const post = await postModel
+        .findOne({
+          _id: postId,
+          owner: req.user._id,
+        })
+        .populate("owner", "username image")
+        .populate("comments.user", "username image");
       if (!post) {
         res.status(404).send({ message: "Post not found or unauthorized" });
         return;
@@ -223,13 +230,15 @@ class PostsController extends BaseController<IPost> {
 
       if (req.file) {
         const targetDir = path.join(__dirname, "../uploads/posts");
-        if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
+        if (!fs.existsSync(targetDir)) {
+          fs.mkdirSync(targetDir, { recursive: true });
+        }
 
-        const imageName = `${postId}.png`;
-        const targetPath = path.join(targetDir, imageName);
+        const imageName = new Date().toISOString().replace(/[:.]/g, "-");
+        const targetPath = path.join(targetDir, `${imageName}.png`);
+
         fs.renameSync(req.file.path, targetPath);
-
-        post.imageUrl = `/uploads/posts/${imageName}`;
+        post.imageUrl = `/uploads/posts/${imageName}.png`; // שמירת הנתיב של התמונה
       }
 
       await post.save();
