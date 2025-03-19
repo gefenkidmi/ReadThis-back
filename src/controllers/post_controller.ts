@@ -4,7 +4,20 @@ import { AuthRequest } from "../common/auth_middleware";
 import BaseController from "./base_controller";
 import path from "path";
 import fs from "fs";
+import axios from "axios";
+import sharp from "sharp";
 
+interface GoogleBooksResponse {
+  items?: {
+    volumeInfo: {
+      title?: string;
+      imageLinks?: {
+        thumbnail?: string;
+        smallThumbnail?: string;
+      };
+    };
+  }[];
+}
 class PostsController extends BaseController<IPost> {
   constructor() {
     super(postModel);
@@ -22,27 +35,31 @@ class PostsController extends BaseController<IPost> {
       }
 
       let imageUrl = "";
+      const newPost = new postModel({
+        title,
+        content,
+        owner,
+      });
+
+      await newPost.save();
+
       if (req.file) {
         const targetDir = path.join(__dirname, "../uploads/posts");
         if (!fs.existsSync(targetDir)) {
           fs.mkdirSync(targetDir, { recursive: true });
         }
 
-        const imageName = new Date().toISOString().replace(/[:.]/g, "-");
+        const imageName = new Date().toISOString().replace(/[:.]/g, "-"); // change to post id
         const targetPath = path.join(targetDir, `${imageName}.png`);
 
         fs.renameSync(req.file.path, targetPath);
         imageUrl = `/uploads/posts/${imageName}.png`; // שמירת הנתיב של התמונה
+      } else {
+        newPost.imageUrl = await fetchBookCoverFromGoogleBooks(title, newPost._id.toString());
+        await newPost.save();
       }
 
-      const newPost = new postModel({
-        title,
-        content,
-        imageUrl,
-        owner,
-      });
-
-      await newPost.save();
+      newPost.imageUrl = imageUrl;
 
       res
         .status(201)
@@ -262,6 +279,81 @@ class PostsController extends BaseController<IPost> {
       res.status(500).send({ message: err.message });
     }
   }
+}
+
+
+async function fetchBookCoverFromGoogleBooks(title: string, postId: string): Promise<string> {
+  const query = encodeURIComponent(`${title}`);
+  const googleApiUrl = `https://www.googleapis.com/books/v1/volumes?q=${query}`;
+  const openLibraryUrl = `https://openlibrary.org/search.json?title=${query}`;
+
+  try {
+    // Try Google Books API first
+    const googleResponse = await axios.get(googleApiUrl);
+    const googleData = googleResponse.data as GoogleBooksResponse;
+
+    if (googleData.items && googleData.items.length > 0) {
+      const book = googleData.items[0].volumeInfo;
+      const imageUrl = book.imageLinks?.thumbnail || book.imageLinks?.smallThumbnail || getRandomImage();
+      // const imageUrl = book.imageLinks?.thumbnail || getRandomImage();
+      return await saveImageFromUrl(imageUrl, postId);
+    }
+  } catch (error: any) {
+    console.error("Google Books API failed. Trying Open Library API...");
+  }
+
+  try {
+    // Fallback: Try Open Library API
+    const openLibraryResponse = await axios.get(openLibraryUrl);
+    const openLibraryData = openLibraryResponse.data;
+
+    if (openLibraryData.docs && openLibraryData.docs.length > 0) {
+      const coverId = openLibraryData.docs[0].cover_i;
+      if (coverId) {
+        const imageUrl = `https://covers.openlibrary.org/b/id/${coverId}-L.jpg`;
+        return await saveImageFromUrl(imageUrl, postId);
+      }
+    }
+  } catch (error: any) {
+    console.error("Open Library API also failed.");
+  }
+
+  console.log("Both APIs failed. Using fallback image.");
+  return getRandomImage();
+}
+
+// Function to download and save image
+async function saveImageFromUrl(imageUrl: string, postId: string): Promise<string> {
+  try {
+    if (!imageUrl.startsWith("http")) {
+      throw new Error(`Invalid image URL: ${imageUrl}`);
+    }
+    
+    const response = await axios.get(imageUrl, { responseType: "arraybuffer" });
+    const targetDir = path.join(__dirname, "../uploads/posts"); // Ensure correct path
+
+    if (!fs.existsSync(targetDir)) {
+      fs.mkdirSync(targetDir, { recursive: true });
+    }
+
+    const imagePath = path.join(targetDir, `${postId}.png`);
+
+    // Resize and optimize image using sharp
+    await sharp(Buffer.from(response.data))
+      .resize(500, 750, { fit: "cover" }) // Resize to 500x750px while maintaining aspect ratio
+      .jpeg({ quality: 80 }) // Convert to JPEG and reduce quality to 80%
+      .toFile(imagePath);
+
+    console.log(`Image optimized and saved at: ${imagePath}`);
+    return `/uploads/posts/${postId}.png`;
+  } catch (error) {
+    console.error("Error saving image:", error);
+    return getRandomImage(); // Return a fallback image if saving fails
+  }
+}
+
+function getRandomImage(): string {
+  return "/uploads/posts/DefaultBook.png"; // Path to your stored default image
 }
 
 export default new PostsController();
