@@ -229,6 +229,21 @@ class PostsController extends BaseController<IPost> {
       if (content) post.content = content;
 
       if (req.file) {
+        if (post.imageUrl) {
+          const oldImagePath = path.join(__dirname, "..", post.imageUrl);
+          console.log("🔹 Trying to delete:", oldImagePath);
+          try {
+            if (fs.existsSync(oldImagePath)) {
+              fs.unlinkSync(oldImagePath);
+              console.log("✅ File deleted successfully");
+            } else {
+              console.log("⚠️ File not found:", oldImagePath);
+            }
+          } catch (error) {
+            console.error("❌ Error deleting file:", error);
+          }
+        }
+
         const targetDir = path.join(__dirname, "../uploads/posts");
         if (!fs.existsSync(targetDir)) {
           fs.mkdirSync(targetDir, { recursive: true });
@@ -238,7 +253,7 @@ class PostsController extends BaseController<IPost> {
         const targetPath = path.join(targetDir, `${imageName}.png`);
 
         fs.renameSync(req.file.path, targetPath);
-        post.imageUrl = `/uploads/posts/${imageName}.png`; // שמירת הנתיב של התמונה
+        post.imageUrl = `/uploads/posts/${imageName}.png`;
       }
 
       await post.save();
