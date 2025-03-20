@@ -67,8 +67,7 @@ router.get("/", postsController.getAll.bind(postsController));
  *       200:
  *         description: User's posts fetched successfully
  */
-router.get('/my-posts', authMiddleware, postsController.getMyPosts);
-
+router.get("/my-posts", authMiddleware, postsController.getMyPosts);
 
 /**
  * @swagger
@@ -159,7 +158,7 @@ router.post("/", upload.single("image"), postsController.create);
 router.delete(
   "/:id",
   authMiddleware,
-  postsController.deleteItem.bind(postsController)
+  postsController.deletePost.bind(postsController)
 );
 
 router.post(
@@ -179,8 +178,6 @@ router.post(
   authMiddleware,
   postsController.addComment.bind(postsController)
 );
-
-
 
 /**
  * @swagger
@@ -212,6 +209,11 @@ router.post(
  *       200:
  *         description: Post updated successfully
  */
-router.put('/:id', authMiddleware, upload.single("image"), postsController.updatePost);
+router.put(
+  "/:id",
+  authMiddleware,
+  upload.single("image"),
+  postsController.updatePost
+);
 
 export default router;
