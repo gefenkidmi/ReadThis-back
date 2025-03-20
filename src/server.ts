@@ -8,6 +8,8 @@ import mongoose from "mongoose";
 import postsRoute from "./routes/post_route";
 import commentsRoute from "./routes/comments_route";
 import authRoutes from "./routes/users_route";
+import bookRoutes from "./routes/books_route";
+
 import swaggerJsDoc from "swagger-jsdoc";
 import path from "path";
 
@@ -42,6 +44,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use("/posts", postsRoute);
 app.use("/comments", commentsRoute);
 app.use("/auth", authRoutes);
+app.use("/books", bookRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 
 // 4) Connect to MongoDB
