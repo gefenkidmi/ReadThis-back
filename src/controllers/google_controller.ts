@@ -1,25 +1,44 @@
-import { Request, Response } from "express";
-import jwt from "jsonwebtoken";
-import User from "../models/users_model"; // Import your User model
+import { Request, Response } from 'express';
+import User from '../models/users_model';
+import { OAuth2Client } from 'google-auth-library';
+import authController from "./users_controller";
+import { AuthRequest } from "../common/auth_middleware";
 
-export const googleAuthRedirect = async (req: Request, res: Response) => {
-  try {
-    const { user, token } = req.user as any;
+const client = new OAuth2Client();
 
-    // Send token and user info to frontend
-    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}&name=${user.name}&email=${user.email}&picture=${user.picture}`);
-  } catch (error) {
-    res.status(500).json({ message: "Authentication failed" });
-  }
-};
+export const googleSignIn = async (req: Request | AuthRequest, res: Response): Promise<void> => {
+    try {
+        const ticket = await client.verifyIdToken({
+            idToken: req.body.credential,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        const payload = ticket.getPayload();
+        const email = payload?.email;
+        if (email) {
+            let user = await User.findOne({ 'email': email });
+            if (!user) {
+                // create user in db if it doesn't already exist
+                user = await User.create(
+                    {
+                        'email': email,
+                        'name': email,
+                        'password': email + process.env.GOOGLE_CLIENT_ID,
+                        'image': payload?.picture
+                    });
+            }
+            const tokens = await authController.generateToken(user._id);
+            res.status(200).send(
+                {
+                    email: user.email,
+                    _id: user._id,
+                    image: user.imageUrl,
+                    ...tokens
+                })
+        } else {
+            res.status(401).send("email or password incorrect");
+        }
+    } catch (err) {
+        res.status(400).send((err as Error).message);
+    }
 
-export const getCurrentUser = async (req: Request, res: Response) => {
-  try {
-    const user = await User.findById(req.user?.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    res.json(user);
-  } catch (error) {
-    res.status(500).json({ message: "Server error" });
-  }
-};
+}

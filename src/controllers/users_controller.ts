@@ -238,11 +238,13 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
   }
 };
 
+
 export default {
   register,
   login,
   refresh,
   logout,
   getMyProfile,
-  updateProfile
+  updateProfile,
+  generateToken
 };

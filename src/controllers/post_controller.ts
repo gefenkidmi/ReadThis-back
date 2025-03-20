@@ -153,7 +153,13 @@ class PostsController extends BaseController<IPost> {
       }
 
       // הוספת המשתמש למערך הלייקים
-      requestedPost.usersWhoLiked.push(userId);
+      if (userId) {
+        requestedPost.usersWhoLiked.push(userId);
+      } else {
+        console.error("Error: userId is undefined");
+        res.status(400).json({ message: "Invalid user ID" });
+        return;
+      }
 
       // שמירה
       await requestedPost.save();
