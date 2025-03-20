@@ -7,8 +7,9 @@
     "dev": "nodemon ./src/app.ts",
     "start": "tsc && node ./dist/app.js",
     "test": "jest --detectOpenHandles --forceExit --runInBand",
-    "testAuth": "jest --detectOpenHandles --forceExit auth.test.ts",
+    "testUsers": "jest --detectOpenHandles --forceExit users.test.ts",
     "testPost": "jest --detectOpenHandles --forceExit posts.test.ts",
+    "testBooks" : "jest --detectOpenHandles --forceExit books.test.ts",
     "lint": "eslint . --ext .ts"
   },
   "author": "Gefen and Ziv",
