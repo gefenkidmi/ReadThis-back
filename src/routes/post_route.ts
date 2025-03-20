@@ -57,6 +57,8 @@ import upload from "../common/file_middleware";
  */
 router.get("/", postsController.getAll.bind(postsController));
 
+router.get("/paged", postsController.getAllPaged.bind(postsController));
+
 /**
  * @swagger
  * /posts/my-posts:

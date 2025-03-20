@@ -117,6 +117,30 @@ class PostsController extends BaseController<IPost> {
     }
   }
 
+  async getAllPaged(req: AuthRequest, res: Response) {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 5;
+      const skip = (page - 1) * limit;
+
+      const posts = await this.model
+        .find()
+        .sort({ createdAt: -1 }) // הצגת הפוסטים מהחדש לישן
+        .skip(skip)
+        .limit(limit)
+        .populate("owner", "username image")
+        .populate("comments.user", "username image");
+
+      const totalPosts = await this.model.countDocuments();
+      const totalPages = Math.ceil(totalPosts / limit);
+
+      res.json({ posts, totalPages });
+    } catch (err) {
+      console.error("Error fetching paged posts:", err);
+      res.status(500).json({ message: "Failed to fetch posts" });
+    }
+  }
+
   async getAll(req: AuthRequest, res: Response) {
     super.getAllPopulated(req, res, "owner comments.user", "username image");
   }
