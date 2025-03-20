@@ -55,7 +55,10 @@ class PostsController extends BaseController<IPost> {
         fs.renameSync(req.file.path, targetPath);
         imageUrl = `/uploads/posts/${imageName}.png`; // שמירת הנתיב של התמונה
       } else {
-        newPost.imageUrl = await fetchBookCoverFromGoogleBooks(title, newPost._id.toString());
+        newPost.imageUrl = await fetchBookCoverFromGoogleBooks(
+          title,
+          newPost._id.toString()
+        );
         await newPost.save();
       }
 
@@ -67,6 +70,50 @@ class PostsController extends BaseController<IPost> {
     } catch (error) {
       console.error("Error creating post:", error);
       res.status(500).json({ message: "Failed to create post." });
+    }
+  }
+
+  async deletePost(req: AuthRequest, res: Response) {
+    const postId = req.params.id;
+
+    try {
+      if (!req.user) {
+        res.status(401).send({ message: "Unauthorized" });
+        return;
+      }
+
+      // חיפוש הפוסט כדי לקבל את הנתיב של התמונה
+      const post = await this.model.findOne({
+        _id: postId,
+        owner: req.user._id,
+      });
+
+      if (!post) {
+        res.status(404).send({ message: "Post not found or unauthorized" });
+        return;
+      }
+
+      // מחיקת התמונה מהשרת אם קיימת
+      if (post.imageUrl) {
+        const imagePath = path.join(__dirname, "..", post.imageUrl);
+        console.log("🔹 Deleting image:", imagePath);
+        try {
+          if (fs.existsSync(imagePath)) {
+            fs.unlinkSync(imagePath);
+            console.log("✅ Image deleted successfully");
+          } else {
+            console.log("⚠️ Image not found:", imagePath);
+          }
+        } catch (error) {
+          console.error("❌ Error deleting image:", error);
+        }
+      }
+
+      // קריאה לפעולת המחיקה הכללית מה-BaseController
+      await super.deleteItem(req, res);
+    } catch (err: any) {
+      console.error("Error deleting post:", err);
+      res.status(500).send({ message: err.message });
     }
   }
 
@@ -281,8 +328,10 @@ class PostsController extends BaseController<IPost> {
   }
 }
 
-
-async function fetchBookCoverFromGoogleBooks(title: string, postId: string): Promise<string> {
+async function fetchBookCoverFromGoogleBooks(
+  title: string,
+  postId: string
+): Promise<string> {
   const query = encodeURIComponent(`${title}`);
   const googleApiUrl = `https://www.googleapis.com/books/v1/volumes?q=${query}`;
   const openLibraryUrl = `https://openlibrary.org/search.json?title=${query}`;
@@ -294,7 +343,10 @@ async function fetchBookCoverFromGoogleBooks(title: string, postId: string): Pro
 
     if (googleData.items && googleData.items.length > 0) {
       const book = googleData.items[0].volumeInfo;
-      const imageUrl = book.imageLinks?.thumbnail || book.imageLinks?.smallThumbnail || getRandomImage();
+      const imageUrl =
+        book.imageLinks?.thumbnail ||
+        book.imageLinks?.smallThumbnail ||
+        getRandomImage();
       // const imageUrl = book.imageLinks?.thumbnail || getRandomImage();
       return await saveImageFromUrl(imageUrl, postId);
     }
@@ -323,12 +375,15 @@ async function fetchBookCoverFromGoogleBooks(title: string, postId: string): Pro
 }
 
 // Function to download and save image
-async function saveImageFromUrl(imageUrl: string, postId: string): Promise<string> {
+async function saveImageFromUrl(
+  imageUrl: string,
+  postId: string
+): Promise<string> {
   try {
     if (!imageUrl.startsWith("http")) {
       throw new Error(`Invalid image URL: ${imageUrl}`);
     }
-    
+
     const response = await axios.get(imageUrl, { responseType: "arraybuffer" });
     const targetDir = path.join(__dirname, "../uploads/posts"); // Ensure correct path
 
