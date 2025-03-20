@@ -1,8 +1,8 @@
 import jwt from "jsonwebtoken";
 import { NextFunction, Request, Response } from "express";
-
+import { IUser } from "../models/users_model";
 export interface AuthRequest extends Request {
-  user?: { _id: string };
+  user?: IUser;
 }
 
 const authMiddleware = (
@@ -25,15 +25,24 @@ const authMiddleware = (
     return;
   }
 
-  jwt.verify(token, process.env.TOKEN_SECRET!, (err, user) => {
-    if (err) {
+  jwt.verify(token, process.env.TOKEN_SECRET!, (err, decoded) => {
+    if (err || !decoded) {
       console.log(err);
-      res
-        .status(401)
-        .json({ message: "Unauthorized: Token expired or invalid" });
+      res.status(401).json({ message: "Unauthorized: Token expired or invalid" });
       return;
     }
-    req.user = user as { _id: string }; // הוספת המשתמש ל-request
+  
+    // Ensure decoded is treated as a JWT payload
+    const userPayload = decoded as jwt.JwtPayload;
+  
+    req.user = {
+      _id: userPayload._id as string,  // Ensure _id is a string
+      email: userPayload.email as string,
+      username: userPayload.username as string,
+      imageUrl: userPayload.imageUrl as string,
+      password: "", // Optional: Use an empty string or remove if not needed
+    } as IUser;
+  
     next();
   });
 };

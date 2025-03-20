@@ -3,6 +3,9 @@ const router = express.Router();
 import usersController from "../controllers/users_controller";
 import upload from "../common/file_middleware";
 import authMiddleware from "../common/auth_middleware";
+import passport from "../common/google_middleware";
+import { googleSignIn } from "../controllers/google_controller";
+
 
 
 /**
@@ -231,4 +234,6 @@ router.put(
     usersController.updateProfile
   );
 
+
+  router.post("/google", googleSignIn);
 export default router;
