@@ -1,18 +1,25 @@
 import express from "express";
-const router = express.Router();
 import usersController from "../controllers/users_controller";
 import upload from "../common/file_middleware";
 import authMiddleware from "../common/auth_middleware";
 import passport from "../common/google_middleware";
 import { googleSignIn } from "../controllers/google_controller";
 
-
-
 /**
 * @swagger
 * tags:
 *   name: Users
 *   description: The Authentication API
+*/
+
+/**
+* @swagger
+* components:
+*   securitySchemes:
+*     bearerAuth:
+*       type: http
+*       scheme: bearer
+*       bearerFormat: JWT
 */
 
 /**
@@ -41,6 +48,8 @@ import { googleSignIn } from "../controllers/google_controller";
 *         password: '123456'
 */
 
+const router = express.Router();
+
 /**
 * @swagger
 * /auth/register:
@@ -61,6 +70,7 @@ import { googleSignIn } from "../controllers/google_controller";
 *             schema:
 *               $ref: '#/components/schemas/User'
 */
+
 router.post("/register", upload.single("image"), usersController.register);
 
 
@@ -100,6 +110,7 @@ router.post("/register", upload.single("image"), usersController.register);
  *       '500':
  *         description: Internal server error
  */
+
 router.post("/login", usersController.login);
 
 
@@ -131,6 +142,7 @@ router.post("/login", usersController.login);
  *       '500':
  *         description: Internal server error
  */
+
 router.post("/logout", usersController.logout);
 
 /**
@@ -172,6 +184,7 @@ router.post("/logout", usersController.logout);
  *       '500':
  *         description: Internal server error
  */
+
 router.post("/refresh", usersController.refresh);
 
 
@@ -199,6 +212,7 @@ router.post("/refresh", usersController.refresh);
  *       '500':
  *         description: Internal server error
  */
+
 router.get("/me", authMiddleware, usersController.getMyProfile);
 
 /**
@@ -227,13 +241,22 @@ router.get("/me", authMiddleware, usersController.getMyProfile);
  *       400:
  *         description: Bad request
  */
-router.put(
-    "/profile",
-    authMiddleware,
-    upload.single("image"),
-    usersController.updateProfile
-  );
 
+router.put("/profile", authMiddleware, upload.single("image"),usersController.updateProfile);
 
-  router.post("/google", googleSignIn);
+/**
+ * @swagger
+ * /auth/google:
+ *   post:
+ *     summary: Register a user using Google
+ *     tags: 
+ *       - Users
+ *     description: Need to provide the google token in the body
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Login completed successfully
+ */
+router.post("/google", googleSignIn);
 export default router;
