@@ -49,11 +49,13 @@ class PostsController extends BaseController<IPost> {
           fs.mkdirSync(targetDir, { recursive: true });
         }
 
-        const imageName = new Date().toISOString().replace(/[:.]/g, "-"); // change to post id
+        const imageName = newPost._id.toString(); // change to post id
         const targetPath = path.join(targetDir, `${imageName}.png`);
 
         fs.renameSync(req.file.path, targetPath);
         imageUrl = `/uploads/posts/${imageName}.png`; // שמירת הנתיב של התמונה
+        newPost.imageUrl = imageUrl;
+        await newPost.save();
       } else {
         newPost.imageUrl = await fetchBookCoverFromGoogleBooks(
           title,
@@ -61,8 +63,6 @@ class PostsController extends BaseController<IPost> {
         );
         await newPost.save();
       }
-
-      newPost.imageUrl = imageUrl;
 
       res
         .status(201)
