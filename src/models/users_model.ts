@@ -26,6 +26,7 @@ const userSchema = new mongoose.Schema<IUser>({
   },
   imageUrl: {
     type: String,
+    default: "../uploads/profile/testing.png"
   },
   refreshToken: {
     type: [String],

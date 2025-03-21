@@ -3,7 +3,7 @@ import usersController from "../controllers/users_controller";
 import upload from "../common/file_middleware";
 import authMiddleware from "../common/auth_middleware";
 import passport from "../common/google_middleware";
-import { googleSignIn } from "../controllers/google_controller";
+import { googleAuth } from "../controllers/google_controller";
 
 /**
 * @swagger
@@ -258,5 +258,6 @@ router.put("/profile", authMiddleware, upload.single("image"),usersController.up
  *       200:
  *         description: Login completed successfully
  */
-router.post("/google", googleSignIn);
+router.post("/google-auth", googleAuth);
+
 export default router;
