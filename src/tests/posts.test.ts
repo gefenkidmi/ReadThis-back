@@ -1,114 +1,215 @@
-import request from "supertest";
+import { Express } from "express";
+import supertest from "supertest";
+import defaults from "superagent-defaults";
 import initApp from "../server";
 import mongoose from "mongoose";
-import postModel from "../models/post_model";
-import { Express } from "express";
-import userModel, { IUser } from "../models/users_model";
+import User, { IUser } from "../models/users_model";
+import Post, { IPost } from "../models/post_model";
+import fs from "fs";
+import path from "path";
 
-var app: Express;
+let app: Express;
 
-type User = IUser & { token?: string };
-const testUser: User = {
-  email: "test@user.com",
-  password: "testpassword",
+const post: IPost = {
+  title: "this is a title",
+  content: "this is a post",
+  owner: "",
+  usersWhoLiked: [],
+  imageUrl: "",
 };
+
+let newPost = { content: "new content" };
+
+const postWithPrompt = {
+  imageUrl: "",
+  owner: "owner",
+  content: "image prompt post",
+  image_prompt: "image prompt",
+  createdBy: "",
+  usersWhoLiked: [],
+};
+
+const comment1 = { text: "hi" };
+
+let accessToken = "";
+let request;
+let userId;
+let postId;
 
 beforeAll(async () => {
   app = await initApp();
-
-  await postModel.deleteMany();
-  await userModel.deleteMany();
-
-  const registerResponse = await request(app)
+  request = defaults(supertest(app));
+  await Post.deleteMany({});
+  const response = await request
     .post("/auth/register")
-    .send(testUser);
-
-  const res = await request(app).post("/auth/login").send(testUser);
-
-  testUser.token = res.body.accessToken;
-  testUser._id = res.body._id;
-
-  expect(testUser.token).toBeDefined();
+    .set("Content-Type", "multipart/form-data")
+    .field("email", "post-test@student.post.test")
+    .field("username", "test")
+    .field("password", "1235678")
+    .attach("image", fs.createReadStream(path.join(__dirname, "./sample.png")));
+  userId = response.body._id;
+  const signInResponse = await request.post("/auth/login").send({
+    username: "test",
+    password: "1235678",
+  });
+  accessToken = signInResponse.body.accessToken; // ✅ Get token from sign-in
+  request.set({ Authorization: `Bearer ${accessToken}` }); // ✅ Use the new token
+  userId = response.body._id;
 });
 
-afterAll((done) => {
-  mongoose.connection.close();
-  done();
+afterAll(async () => {
+  await User.findByIdAndDelete(userId);
+  await mongoose.connection.close();
 });
 
-let postId = "";
-describe("Posts Tests", () => {
-  test("Posts test get all", async () => {
-    const response = await request(app).get("/posts");
+describe("Post get tests", () => {
+  test("Test Get All Posts - empty list", async () => {
+    const response = await request.get("/posts");
     expect(response.statusCode).toBe(200);
-    expect(response.body.length).toBe(0);
+    expect(response.body).toHaveLength(0);
   });
 
-  test("Test Create Post", async () => {
-    const response = await request(app)
+  test("Test Get Posts by user id - empty list", async () => {
+    const response = await request.get(`/posts/my-posts`);
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toHaveLength(0);
+  });
+});
+
+describe("Post post tests", () => {
+  test("should create a post", async () => {
+    const response = await request
       .post("/posts")
-      .set({ authorization: "JWT " + testUser.token })
-      .send({
-        title: "Test Post",
-        content: "Test Content",
-        owner: "TestOwner",
-      });
+      .field("owner", userId)
+      .field("title", "title")
+      .field("content", "content")
+      .attach(
+        "image",
+        fs.createReadStream(path.join(__dirname, "./sample.png"))
+      );
     expect(response.statusCode).toBe(201);
-    expect(response.body.title).toBe("Test Post");
-    expect(response.body.content).toBe("Test Content");
-    postId = response.body._id;
+    postId = response.body.post._id;
+    expect(response.body.post.content).toEqual("content");
+    expect(response.body.post.owner).toEqual(userId);
   });
 
-  test("Test get post by owner", async () => {
-    const response = await request(app).get("/posts?owner=" + testUser._id);
+  test("Test Get a post", async () => {
+    const response = await request.get("/posts/" + postId);
     expect(response.statusCode).toBe(200);
-    expect(response.body.length).toBe(1);
-    expect(response.body[0].title).toBe("Test Post");
-    expect(response.body[0].content).toBe("Test Content");
+    expect(response.body.content).toEqual("content");
   });
 
-  test("Test get post by id", async () => {
-    const response = await request(app).get("/posts/" + postId);
+  test("Test Get all posts", async () => {
+    const response = await request.get("/posts");
     expect(response.statusCode).toBe(200);
-    expect(response.body.title).toBe("Test Post");
-    expect(response.body.content).toBe("Test Content");
+    expect(response.body).toHaveLength(1);
+  });
+});
+
+describe("Post get tests", () => {
+  test("Test Get Posts by user id - one post", async () => {
+    const response = await request.get(`/posts/my-posts`);
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toHaveLength(1);
+    expect(response.body[0].content).toEqual("content");
+  });
+});
+
+describe("Put post tests", () => {
+  test("Test Put a post", async () => {
+    const response = await request.put(`/posts/` + postId).send(newPost);
+    expect(response.statusCode).toBe(200);
+    expect(response.body.content).toEqual("new content");
   });
 
-  test("Test Create Post 2", async () => {
-    const response = await request(app)
-      .post("/posts")
-      .set({ authorization: "JWT " + testUser.token })
-      .send({
-        title: "Test Post 2",
-        content: "Test Content 2",
-        owner: "TestOwner2",
-      });
+  test("Test Get a post", async () => {
+    const response = await request.get("/posts/" + postId);
+    expect(response.statusCode).toBe(200);
+    expect(response.body.content).toEqual("new content");
+  });
+});
+
+describe("Add a comment to post tests", () => {
+  test("Test no comments on post", async () => {
+    const response = await request.get("/posts/" + postId);
+    expect(response.statusCode).toBe(200);
+    expect(response.body.comments).toHaveLength(0);
+  });
+
+  test("Test comment on a post", async () => {
+    const response = await request
+      .post(`/posts/comment/` + postId)
+      .send(comment1);
     expect(response.statusCode).toBe(201);
+    const postResponse = await request.get("/posts/" + postId);
+    expect(postResponse.statusCode).toBe(200);
+    expect(postResponse.body.comments).toHaveLength(1);
   });
 
-  test("Posts test get all 2", async () => {
-    const response = await request(app).get("/posts");
+  test("Test one comment on post", async () => {
+    const response = await request.get("/posts/" + postId);
     expect(response.statusCode).toBe(200);
-    expect(response.body.length).toBe(2);
+    expect(response.body.comments).toHaveLength(1);
+    expect(response.body.comments[0].text).toEqual(comment1.text);
+    expect(response.body.comments[0].user._id).toEqual(userId);
   });
+});
 
-  test("Test Delete Post", async () => {
-    const response = await request(app)
-      .delete("/posts/" + postId)
-      .set({ authorization: "JWT " + testUser.token });
+describe("Like a post tests", () => {
+  test("Test no likes on post", async () => {
+    const response = await request.get("/posts/" + postId);
     expect(response.statusCode).toBe(200);
-
-    const response2 = await request(app).get("/posts/" + postId);
-    expect(response2.statusCode).toBe(404);
+    expect(response.body.usersWhoLiked).toHaveLength(0);
   });
 
-  test("Test Create Post fail", async () => {
-    const response = await request(app)
-      .post("/posts")
-      .set({ authorization: "JWT " + testUser.token })
-      .send({
-        content: "Test Content 2",
-      });
+  test("Test unlike an unliked post- error", async () => {
+    const response = await request.post(`/posts/unlike/` + postId);
+    expect(response.statusCode).toBe(406);
+  });
+
+  test("Test like an unliked post", async () => {
+    const response = await request.post(`/posts/like/${postId}`);
+    expect(response.statusCode).toBe(200);
+    expect(response.body.usersWhoLiked).toHaveLength(1);
+  });
+
+  test("Test number of likes on post should equal 1", async () => {
+    const response = await request.get(`/posts/${postId}`);
+    expect(response.statusCode).toBe(200);
+    expect(response.body.usersWhoLiked).toHaveLength(1);
+  });
+
+  test("Test like a liked post - error", async () => {
+    const response = await request.post(`/posts/like/${postId}`);
+    expect(response.statusCode).toBe(406);
+  });
+
+  test("Test unlike a liked post", async () => {
+    const response = await request.post(`/posts/unlike/${postId}`);
+    expect(response.statusCode).toBe(200);
+    expect(response.body.usersWhoLiked).toHaveLength(0);
+  });
+
+  test("Test number of likes on post should equal 0", async () => {
+    const response = await request.get(`/posts/${postId}`);
+    expect(response.statusCode).toBe(200);
+    expect(response.body.usersWhoLiked).toHaveLength(0);
+  });
+});
+
+describe("Delete post tests", () => {
+  test("Test delete a post", async () => {
+    const response = await request.delete(`/posts/${postId}`);
+    expect(response.statusCode).toBe(200);
+  });
+
+  test("Test Get a deleted post- results in error", async () => {
+    const response = await request.get(`/posts/${postId}`);
+    expect(response.statusCode).toBe(404);
+  });
+
+  test("Test delete a deleted post", async () => {
+    const response = await request.delete(`/posts/${postId}`);
     expect(response.statusCode).toBe(400);
   });
 });
