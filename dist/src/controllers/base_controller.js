@@ -31,11 +31,26 @@ class BaseController {
             }
         });
     }
+    getAllPopulated(req, res, path, select) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const obj = yield this.model.find().populate(path, select);
+                if (!obj)
+                    res.status(404);
+                res.send(obj);
+            }
+            catch (error) {
+                console.log(error);
+                res.status(500).send(error);
+            }
+        });
+    }
     getById(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const postId = req.params.id;
             try {
                 const post = yield this.model.findById(postId);
+                console.log(post);
                 if (post != null) {
                     res.send(post);
                 }
@@ -45,6 +60,22 @@ class BaseController {
             }
             catch (error) {
                 res.status(400).send(error);
+            }
+        });
+    }
+    getByIdPopulated(req, res, path, select) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const obj = yield this.model
+                    .findById(req.params.id)
+                    .populate(path, select);
+                if (!obj)
+                    res.status(404);
+                res.send(obj);
+            }
+            catch (error) {
+                console.log(error);
+                res.status(500).send(error);
             }
         });
     }

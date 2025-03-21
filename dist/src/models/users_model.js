@@ -10,15 +10,24 @@ const userSchema = new mongoose_1.default.Schema({
         required: true,
         unique: true,
     },
+    username: {
+        type: String,
+        required: true,
+        unique: true,
+    },
     password: {
         type: String,
         required: true,
+    },
+    imageUrl: {
+        type: String,
+        default: "../uploads/profile/testing.png"
     },
     refreshToken: {
         type: [String],
         default: [],
     },
 });
-const userModel = mongoose_1.default.model("Users", userSchema);
+const userModel = mongoose_1.default.model("User", userSchema);
 exports.default = userModel;
 //# sourceMappingURL=users_model.js.map

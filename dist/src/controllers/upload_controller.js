@@ -16,30 +16,26 @@ exports.uploadImage = void 0;
 const multer_1 = __importDefault(require("multer"));
 const path_1 = __importDefault(require("path"));
 const fs_extra_1 = __importDefault(require("fs-extra"));
-// Define the base upload directory inside the public folder
 const uploadDir = path_1.default.join(__dirname, "../../public/uploads");
-fs_extra_1.default.ensureDirSync(uploadDir); // Ensure directory exists
-// Multer Storage Configuration
+fs_extra_1.default.ensureDirSync(uploadDir);
 const storage = multer_1.default.diskStorage({
     destination: (req, file, cb) => {
-        let type = req.body.type || "general"; // Default type if not provided
+        let type = req.body.type || "general";
         const destinationPath = path_1.default.join(uploadDir, type);
-        fs_extra_1.default.ensureDirSync(destinationPath); // Ensure directory exists
+        fs_extra_1.default.ensureDirSync(destinationPath);
         cb(null, destinationPath);
     },
     filename: (req, file, cb) => {
-        let identifier = req.body.identifier; // Username or Post ID
-        let type = req.body.type || "general"; // "profile" or "post"
+        let identifier = req.body.identifier;
+        let type = req.body.type || "general";
         if (!identifier) {
             return cb(new Error("Identifier (username or postId) is required"), "");
         }
-        const filename = `${identifier}.png`; // Standardized filename
+        const filename = `${identifier}.png`;
         cb(null, filename);
     },
 });
-// Initialize Multer
 const upload = (0, multer_1.default)({ storage });
-// ✅ Fix: Define upload middleware properly
 exports.uploadImage = [
     upload.single("image"),
     (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {

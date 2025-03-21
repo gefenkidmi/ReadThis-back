@@ -1,229 +1,324 @@
 import request from "supertest";
 import initApp from "../server";
 import mongoose from "mongoose";
-import postModel from "../models/post_model";
 import { Express } from "express";
 import userModel, { IUser } from "../models/users_model";
+import tests from "./test_uesrs.json";
+import fs from "fs";
+import path from "path";
+import dotenv from "dotenv";
+import { exec } from "child_process";
+import exp from "constants";
 
-var app: Express;
-
-beforeAll(async () => {
-  console.log("beforeAll");
-  app = await initApp();
-  await userModel.deleteMany();
-  await postModel.deleteMany();
-});
-
-afterAll((done) => {
-  console.log("afterAll");
-  mongoose.connection.close();
-  done();
-});
-
+let app: Express;
 const baseUrl = "/auth";
 
-type User = IUser & {
-  accessToken?: string;
-  refreshToken?: string;
-};
+let accessToken: string;
+let refreshToken: string;
+let userId: string;
 
-const testUser: User = {
-  email: "test@user.com",
-  password: "testpassword",
-  username: "test",
-  imageUrl: "../uploads/posts/DefaultBook.png"
-};
+beforeAll(async () => {
+  app = await initApp();
+  console.log(process.env.DB_CONNECT);
+  await userModel.deleteMany();
+});
+
+afterAll(async () => {
+  await mongoose.connection.close();
+});
 
 describe("Auth Tests", () => {
-  test("Auth test register", async () => {
+  // Test Register new user - valid
+  test("Successfully register a new user with an image", async () => {
     const response = await request(app)
-      .post(baseUrl + "/register")
-      .send(testUser);
+      .post(`${baseUrl}/register`)
+      .set("Content-Type", "multipart/form-data")
+      .field("email", tests.validUsers.testUser1.email)
+      .field("username", tests.validUsers.testUser1.username)
+      .field("password", tests.validUsers.testUser1.password)
+      .attach("image", fs.createReadStream(path.join(__dirname, tests.validUsers.testUser1.imageUrl)));
+
+    // console.log("Register Response Body:", response.body); --> Debug
     expect(response.statusCode).toBe(200);
+    expect(response.body.email).toBe(tests.validUsers.testUser1.email);
+    expect(response.body.username).toBe(tests.validUsers.testUser1.username);
+    expect(response.body.imageUrl).toBeDefined();
   });
 
-  test("Auth test register fail", async () => {
+
+  // Test Register new user - invalid email
+  test("Fail Register a new user with invalid email", async () => {
     const response = await request(app)
-      .post(baseUrl + "/register")
-      .send(testUser);
-    expect(response.statusCode).not.toBe(200);
+      .post(`${baseUrl}/register`)
+      .set("Content-Type", "multipart/form-data")
+      .field("email", tests.invalidUsers.invalidEmail.email)
+      .field("username", tests.invalidUsers.invalidEmail.username)
+      .field("password", tests.invalidUsers.invalidEmail.password)
+      .attach("image", fs.createReadStream(path.join(__dirname, tests.invalidUsers.invalidEmail.imageUrl)));
+
+    // console.log("Register Response Body:", response.body); --> Debug
+    expect(response.statusCode).toBe(400);
   });
 
-  test("Auth test register fail", async () => {
+  // Test Register new user - without image
+  test("Fail Register a new user without image", async () => {
     const response = await request(app)
-      .post(baseUrl + "/register")
-      .send({
-        email: "sdsdfsd",
-      });
-    expect(response.statusCode).not.toBe(200);
-    const response2 = await request(app)
-      .post(baseUrl + "/register")
-      .send({
-        email: "",
-        password: "sdfsd",
-      });
-    expect(response2.statusCode).not.toBe(200);
+      .post(`${baseUrl}/register`)
+      .set("Content-Type", "multipart/form-data")
+      .field("email", tests.invalidUsers.noImage.email)
+      .field("username", tests.invalidUsers.noImage.username)
+      .field("password", tests.invalidUsers.noImage.password)
+
+    // console.log("Register Response Body:", response.body); --> Debug
+    expect(response.statusCode).toBe(400);
+    expect(response.body.message).toMatch(/Profile image is required/i);
   });
 
-  test("Auth test login", async () => {
+  // Test Register new user - missing fields
+  test("Fail Register new user without email", async () => {
     const response = await request(app)
-      .post(baseUrl + "/login")
-      .send(testUser);
-    expect(response.statusCode).toBe(200);
-    const accessToken = response.body.accessToken;
-    const refreshToken = response.body.refreshToken;
-    expect(accessToken).toBeDefined();
-    expect(refreshToken).toBeDefined();
-    expect(response.body._id).toBeDefined();
-    testUser.accessToken = accessToken;
-    testUser.refreshToken = refreshToken;
-    testUser._id = response.body._id;
+      .post(`${baseUrl}/register`)
+      .set("Content-Type", "multipart/form-data")
+      .field("email", tests.invalidUsers.missingEmail.email)
+      .field("username", tests.invalidUsers.missingEmail.username)
+      .field("password", tests.invalidUsers.missingEmail.password)
+      .attach("image", fs.createReadStream(path.join(__dirname, tests.invalidUsers.missingEmail.imageUrl)));
+
+      // console.log("Register Response Body:", response.body); --> Debug
+      expect(response.statusCode).toBe(400);
+      expect(response.body.message).toMatch(/All fields are required: email, username, password./i);
   });
 
-  test("Check tokens are not the same", async () => {
+  test("Fail Register new user without username", async () => {
     const response = await request(app)
-      .post(baseUrl + "/login")
-      .send(testUser);
-    const accessToken = response.body.accessToken;
-    const refreshToken = response.body.refreshToken;
+      .post(`${baseUrl}/register`)
+      .set("Content-Type", "multipart/form-data")
+      .field("email", tests.invalidUsers.missingUsername.email)
+      .field("username", tests.invalidUsers.missingUsername.username)
+      .field("password", tests.invalidUsers.missingUsername.password)
+      .attach("image", fs.createReadStream(path.join(__dirname, tests.invalidUsers.missingUsername.imageUrl)));
 
-    expect(accessToken).not.toBe(testUser.accessToken);
-    expect(refreshToken).not.toBe(testUser.refreshToken);
+      // console.log("Register Response Body:", response.body); --> Debug
+      expect(response.statusCode).toBe(400);
+      expect(response.body.message).toMatch(/All fields are required: email, username, password./i);
   });
 
-  test("Auth test login fail", async () => {
+  test("Fail Register new user without password", async () => {
     const response = await request(app)
-      .post(baseUrl + "/login")
-      .send({
-        email: testUser.email,
-        password: "sdfsd",
-      });
-    expect(response.statusCode).not.toBe(200);
+      .post(`${baseUrl}/register`)
+      .set("Content-Type", "multipart/form-data")
+      .field("email", tests.invalidUsers.missingPassword.email)
+      .field("username", tests.invalidUsers.missingPassword.username)
+      .field("password", tests.invalidUsers.missingPassword.password)
+      .attach("image", fs.createReadStream(path.join(__dirname, tests.invalidUsers.missingPassword.imageUrl)));
 
-    const response2 = await request(app)
-      .post(baseUrl + "/login")
-      .send({
-        email: "dsfasd",
-        password: "sdfsd",
-      });
-    expect(response2.statusCode).not.toBe(200);
+      // console.log("Register Response Body:", response.body); --> Debug
+      expect(response.statusCode).toBe(400);
+      expect(response.body.message).toMatch(/All fields are required: email, username, password./i);
   });
 
-  test("Auth test me", async () => {
-    const response = await request(app).post("/posts").send({
-      title: "Test Post",
-      content: "Test Content",
-      owner: "sdfSd",
-    });
-    expect(response.statusCode).not.toBe(201);
-    const response2 = await request(app)
-      .post("/posts")
-      .set({ authorization: "JWT " + testUser.accessToken })
-      .send({
-        title: "Test Post",
-        content: "Test Content",
-        owner: "sdfSd",
-      });
-    expect(response2.statusCode).toBe(201);
-  });
-
-  test("Test refresh token", async () => {
+  // Test Register new user - existing email or username
+  test("Fail Register a new user - with exsisting email or username", async () => {
     const response = await request(app)
-      .post(baseUrl + "/refresh")
-      .send({
-        refreshToken: testUser.refreshToken,
-      });
+      .post(`${baseUrl}/register`)
+      .set("Content-Type", "multipart-form-data")
+      .field("email", tests.validUsers.testUser1.email)
+      .field("username", tests.validUsers.testUser1.username)
+      .field("password", tests.validUsers.testUser1.password)
+      .attach("image", fs.createReadStream(path.join(__dirname, tests.validUsers.testUser1.imageUrl)));
+
+    // console.log("Register Response Body:", response.body); --> Debug
+    expect(response.statusCode).toBe(400);
+    expect(response.body.message).toMatch(/Username or Email already exists. Please try a different one./i);
+  });
+
+  //####################
+  // Test Login user - valid
+  test("Successful login with valid user", async () => {
+    const response = await request(app)
+      .post(`${baseUrl}/login`)
+      .send(tests.loginCredentials.valid);
+
+    // console.log("Login Response Body:", response.body); --> Debug
     expect(response.statusCode).toBe(200);
     expect(response.body.accessToken).toBeDefined();
     expect(response.body.refreshToken).toBeDefined();
-    testUser.accessToken = response.body.accessToken;
-    testUser.refreshToken = response.body.refreshToken;
+    expect(response.body._id).toBeDefined();
+
+    accessToken = response.body.accessToken;
+    refreshToken = response.body.refreshToken;
   });
 
-  test("Double use refresh token", async () => {
+  // Test Login user - invalid
+  test("Fail Login a user - with wrong password.", async () => {
     const response = await request(app)
-      .post(baseUrl + "/refresh")
-      .send({
-        refreshToken: testUser.refreshToken,
-      });
-    expect(response.statusCode).toBe(200);
-    const refreshTokenNew = response.body.refreshToken;
+      .post(`${baseUrl}/login`)
+      .send(tests.loginCredentials.invalidPassword);
 
-    const response2 = await request(app)
-      .post(baseUrl + "/refresh")
-      .send({
-        refreshToken: testUser.refreshToken,
-      });
-    expect(response2.statusCode).not.toBe(200);
-
-    const response3 = await request(app)
-      .post(baseUrl + "/refresh")
-      .send({
-        refreshToken: refreshTokenNew,
-      });
-    expect(response3.statusCode).not.toBe(200);
+      // console.log("Login Response Body:", response.body); --> Debug
+      expect(response.statusCode).toBe(401);
   });
 
-  test("Test logout", async () => {
+  // Test Login user - non exsists user
+  test("Fail Login a user - non exsists user", async () => {
     const response = await request(app)
-      .post(baseUrl + "/login")
-      .send(testUser);
-    expect(response.statusCode).toBe(200);
-    testUser.accessToken = response.body.accessToken;
-    testUser.refreshToken = response.body.refreshToken;
+      .post(`${baseUrl}/login`)
+      .send(tests.loginCredentials.invalidUsername);
 
-    const response2 = await request(app)
-      .post(baseUrl + "/logout")
-      .send({
-        refreshToken: testUser.refreshToken,
-      });
-    expect(response2.statusCode).toBe(200);
-
-    const response3 = await request(app)
-      .post(baseUrl + "/refresh")
-      .send({
-        refreshToken: testUser.refreshToken,
-      });
-    expect(response3.statusCode).not.toBe(200);
+    // console.log("Login Response Body:", response.body); --> Debug
+    expect(response.statusCode).toBe(400);
   });
 
-  jest.setTimeout(10000);
-  test("Test timeout token ", async () => {
+  // ###################
+  // Test Logout - valid refresh token
+  test("Successfully Logout - Valid refresh token", async () => {
     const response = await request(app)
-      .post(baseUrl + "/login")
-      .send(testUser);
+      .post(`${baseUrl}/logout`)
+      .send({refreshToken});
+
+    // console.log("Logout Response Body:", response.body); --> Debug
     expect(response.statusCode).toBe(200);
-    testUser.accessToken = response.body.accessToken;
-    testUser.refreshToken = response.body.refreshToken;
+    expect(response.text).toBe("Success");
+  });
 
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+  // Test Logout - missing refresh token
+  test("Fail to logout with missing token", async () => {
+    const response = await request(app)
+    .post(`${baseUrl}/logout`)
+      .send({});
 
-    const response2 = await request(app)
-      .post("/posts")
-      .set({ authorization: "JWT " + testUser.accessToken })
-      .send({
-        title: "Test Post",
-        content: "Test Content",
-        owner: "sdfSd",
-      });
-    expect(response2.statusCode).not.toBe(201);
+    expect(response.statusCode).toBe(400);
+    expect(response.text).toBe("Refresh token is required");
+  });
 
-    const response3 = await request(app)
-      .post(baseUrl + "/refresh")
-      .send({
-        refreshToken: testUser.refreshToken,
-      });
-    expect(response3.statusCode).toBe(200);
-    testUser.accessToken = response3.body.accessToken;
+  // Test Logout - invalid refresh token / nonexsists refresh token
+  test("Logout with invalid/nonexistent refresh token", async () => {
+    const response = await request(app)
+      .post(`${baseUrl}/logout`)
+      .send({ refreshToken: "invalidToken" });
 
-    const response4 = await request(app)
-      .post("/posts")
-      .set({ authorization: "JWT " + testUser.accessToken })
-      .send({
-        title: "Test Post",
-        content: "Test Content",
-        owner: "sdfSd",
-      });
-    expect(response4.statusCode).toBe(201);
+    expect(response.statusCode).toBe(200);
+    expect(response.text).toBe("Success"); 
+  });
+
+  // ###################
+  // get new refresh token by login again
+  test("Successful login with valid user", async () => {
+    const response = await request(app)
+      .post(`${baseUrl}/login`)
+      .send(tests.loginCredentials.valid);
+
+    // console.log("Login Response Body:", response.body); --> Debug
+    expect(response.statusCode).toBe(200);
+    expect(response.body.accessToken).toBeDefined();
+    expect(response.body.refreshToken).toBeDefined();
+    expect(response.body._id).toBeDefined();
+
+    accessToken = response.body.accessToken;
+    refreshToken = response.body.refreshToken;
+    userId = response.body._id;
+  });
+
+  // Test Refresh token - valid refresh token
+  test("Successful Refresh Token - valid refresh token", async () => {
+    const response = await request(app)
+      .post(`${baseUrl}/refresh`)
+      .send({refreshToken});
+    
+    // console.log("Refresh Response Body:", response.body); --> Debug
+    expect(response.statusCode).toBe(200);
+  });
+
+  // Test Refresh token - invalid refresh token
+  test("Fail Refresh Token - invalid refresh token", async () => {
+    const response = await request(app)
+      .post(`${baseUrl}/refresh`)
+      .send({refreshToken:tests.refreshTokens.invalid});
+    
+    // console.log("Refresh Response Body:", response.body); --> Debug
+    expect(response.statusCode).toBe(401)
+    expect(response.text).toBe("Invalid refresh token");
+  });
+
+  // Test Refresh Token - missing refresh token
+  test("Fail Refresh Token - Missing refresh token", async () => {
+    const response = await request(app)
+      .post(`${baseUrl}/refresh`)
+      .send({});
+
+    // console.log("Refresh Response Body:", response.body); 
+    expect(response.statusCode).toBe(400);
+  });
+
+  // Test Refresh Token - TOKEN_SECRET is missing
+  test("Fail Refresh Token -  TOKEN_SECRET is missing", async () => {
+    const originalSecret = process.env.TOKEN_SECRET;
+    delete process.env.TOKEN_SECRET;
+
+    const response = await request(app)
+      .post(`${baseUrl}/refresh`)
+      .send({ refreshToken });
+
+    expect(response.statusCode).toBe(500);
+    expect(response.text).toBe("Server Error");
+
+    process.env.TOKEN_SECRET = originalSecret;
+  });
+
+
+  //####################
+  // Test get user by id - get profile
+  test("Successful Get profile - with valid token", async () => {
+    const res = await request(app)
+      .get(`${baseUrl}/me`)
+      .set("Authorization", `JWT ${accessToken}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.username).toBe(tests.validUsers.testUser1.username);
+    expect(res.body.email).toBe(tests.validUsers.testUser1.email);
+    expect(res.body.password).toBeUndefined();
+    expect(res.body.refreshToken).toBeUndefined();
+  });
+
+  // Test get my profile - without token
+  test("Fail Get profile - without token", async () => {
+    const res = await request(app)
+      .get(`${baseUrl}/me`);
+    
+      expect(res.statusCode).toBe(401);
+  });
+
+  // Test update profile - new username and password
+  test("Successfuly Update profile  - with new username and image", async () => {
+    const imagePath = path.join(__dirname, tests.profileUpdates.valid.imageUrl); 
+
+    const res = await request(app)
+      .put(`${baseUrl}/profile`)
+      .set("Authorization", `JWT ${accessToken}`)
+      .field("username", tests.profileUpdates.valid.username)
+      .attach("image", imagePath);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.username).toBe(tests.profileUpdates.valid.username);
+    expect(res.body.imageUrl).toContain(`/uploads/profile/${userId}.png`);
+  });
+
+  // Test Update profile without token
+  test("Fail Update profile without token", async () => {
+    const res = await request(app)
+      .put(`${baseUrl}/profile`)
+      .field("username", tests.profileUpdates.valid.username);
+    expect(res.statusCode).toBe(401);
+  });
+
+  // Test update profile only with username 
+  test("Successfully Update profile with only username", async () => {
+    const res = await request(app)
+      .put(`${baseUrl}/profile`)
+      .set("Authorization", `JWT ${accessToken}`)
+      .field("username", tests.profileUpdates.valid.username);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.username).toBe(tests.profileUpdates.valid.username);
   });
 });

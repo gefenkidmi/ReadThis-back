@@ -1,9 +1,13 @@
-import dotenv from "dotenv";
-dotenv.config();
-
+import env from "dotenv";
+if (process.env.NODE_ENV === "test") {
+  env.config({ path: ".env.test" });
+} else if (process.env.NODE_ENV === "prod") {
+  env.config({ path: ".env.prod" });
+} else {
+  env.config();
+}
 import express, { Express } from "express";
 import mongoose from "mongoose";
-
 // Routes
 import postsRoute from "./routes/post_route";
 import commentsRoute from "./routes/comments_route";

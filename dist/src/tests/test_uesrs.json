@@ -1,0 +1,72 @@
+{
+    "validUsers": {
+        "testUser1": {
+            "email": "test1@user.com",
+            "password": "testpassword1",
+            "username": "testuser1",
+            "imageUrl": "./sample.png"
+        },
+        "testUser2": {
+            "email": "test2@user.com",
+            "password": "testpassword2",
+            "username": "testuser2",
+            "imageUrl": "./sample.png"
+        }
+    },
+    "invalidUsers": {
+        "invalidEmail": {
+            "email": "mail",
+            "username": "invalidUser",
+            "password": "testpassword2",
+            "imageUrl": "./sample.png"
+        },
+        "missingEmail": {
+            "email": "",
+            "username": "invalidUser",
+            "password": "invalidUserPass",
+            "imageUrl": "./sample.png"
+        },
+        "missingUsername": {
+            "email": "invalidUser@gmail.com",
+            "username": "",
+            "password": "invalidUserPass",
+            "imageUrl": "./sample.png"
+        },
+        "missingPassword": {
+            "email": "invalidUser@gmail.com",
+            "username": "invalidUser",
+            "password": "",
+            "imageUrl": "./sample.png"
+        },
+        "noImage": {
+            "email": "test3@user.com",
+            "password": "testpassword3",
+            "username": "testuser3"
+        }
+    },
+    "loginCredentials": {
+        "valid": {
+            "username": "testuser1",
+            "password": "testpassword1"
+        },
+        "invalidPassword": {
+            "username": "testuser1",
+            "password": "wrongpassword"
+        },
+        "invalidUsername": {
+            "username": "notexist",
+            "password": "testpassword1"
+        }
+    },
+    "refreshTokens": {
+        "invalid": "invalidToken",
+        "missing": ""
+    },
+    "profileUpdates": {
+        "valid": {
+            "username": "testuser1",
+            "imageUrl": "./sample.png"
+        },
+        "invalid": {}
+    }
+}
