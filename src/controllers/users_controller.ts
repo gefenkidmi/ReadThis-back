@@ -9,7 +9,17 @@ import fs from "fs";
 const register = async (req: AuthRequest, res: Response):Promise<void> => {
   try {
     const { email, username, password } = req.body;
+    
+    if (!email || !username || !password) {
+      res.status(400).json({ message: "All fields are required: email, username, password." });
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+    if (!emailRegex.test(email)) {
+      res.status(400).json({ message: "Invalid email format." });
+      return;
+    }
     // Check if a user with the same email or username already exists
     const existingUser = await userModel.findOne({
       $or: [{ email }, { username }],
@@ -17,12 +27,14 @@ const register = async (req: AuthRequest, res: Response):Promise<void> => {
 
     if (!req.file) {
       res.status(400).json({ message: "Profile image is required." });
+      return;
     }
 
     if (existingUser) {
         res.status(400).json({
         message: "Username or Email already exists. Please try a different one.",
       });
+      return;
     }
 
     // Hash the password
@@ -88,14 +100,14 @@ const login = async (req: AuthRequest, res: Response) => {
     // Find the user by username
     const user = await userModel.findOne({ username });
     if (!user) {
-      res.status(400).send("Wrong username or password");
+      res.status(400).send("User not found");
       return;
     }
 
     // Check the password
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
-      res.status(400).send("Wrong username or password");
+      res.status(401).send("Wrong username or password");
       return;
     }
 

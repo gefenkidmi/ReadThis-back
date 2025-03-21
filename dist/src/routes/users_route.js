@@ -4,8 +4,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const router = express_1.default.Router();
 const users_controller_1 = __importDefault(require("../controllers/users_controller"));
+const file_middleware_1 = __importDefault(require("../common/file_middleware"));
+const auth_middleware_1 = __importDefault(require("../common/auth_middleware"));
+const google_controller_1 = require("../controllers/google_controller");
 /**
 * @swagger
 * tags:
@@ -30,6 +32,7 @@ const users_controller_1 = __importDefault(require("../controllers/users_control
 *       required:
 *         - email
 *         - password
+*         - username
 *       properties:
 *         email:
 *           type: string
@@ -37,10 +40,15 @@ const users_controller_1 = __importDefault(require("../controllers/users_control
 *         password:
 *           type: string
 *           description: The user password
+*         username:
+*           type: String
+*           description: The user username
 *       example:
 *         email: 'ziv@gmail.com'
+*         username: 'ziv'
 *         password: '123456'
 */
+const router = express_1.default.Router();
 /**
 * @swagger
 * /auth/register:
@@ -61,7 +69,7 @@ const users_controller_1 = __importDefault(require("../controllers/users_control
 *             schema:
 *               $ref: '#/components/schemas/User'
 */
-router.post("/register", users_controller_1.default.register);
+router.post("/register", file_middleware_1.default.single("image"), users_controller_1.default.register);
 /**
  * @swagger
  * /auth/login:
@@ -168,5 +176,72 @@ router.post("/logout", users_controller_1.default.logout);
  *         description: Internal server error
  */
 router.post("/refresh", users_controller_1.default.refresh);
+/**
+ * @swagger
+ * /auth/me:
+ *   get:
+ *     summary: Get current user's profile
+ *     description: Fetches the details of the authenticated user
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: User profile successfully retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       '401':
+ *         description: Unauthorized - invalid or missing token
+ *       '404':
+ *         description: User not found
+ *       '500':
+ *         description: Internal server error
+ */
+router.get("/me", auth_middleware_1.default, users_controller_1.default.getMyProfile);
+/**
+ * @swagger
+ * /auth/profile:
+ *   put:
+ *     summary: Update user profile
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: User updated successfully
+ *       400:
+ *         description: Bad request
+ */
+router.put("/profile", auth_middleware_1.default, file_middleware_1.default.single("image"), users_controller_1.default.updateProfile);
+/**
+ * @swagger
+ * /auth/google:
+ *   post:
+ *     summary: Register a user using Google
+ *     tags:
+ *       - Users
+ *     description: Need to provide the google token in the body
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Login completed successfully
+ */
+router.post("/google-auth", google_controller_1.googleAuth);
 exports.default = router;
 //# sourceMappingURL=users_route.js.map

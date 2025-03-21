@@ -1,5 +1,4 @@
 import express from "express";
-const router = express.Router();
 import postsController from "../controllers/post_controller";
 import authMiddleware from "../common/auth_middleware";
 import upload from "../common/file_middleware";
@@ -35,6 +34,8 @@ import upload from "../common/file_middleware";
  *           example: 60d0fe4f5311236168a109ca
  */
 
+const router = express.Router();
+
 /**
  * @swagger
  * /posts:
@@ -57,6 +58,26 @@ import upload from "../common/file_middleware";
  */
 router.get("/", postsController.getAll.bind(postsController));
 
+/**
+ * @swagger
+ * /posts/pages:
+ *   get:
+ *     summary: Get all posts
+ *     description: Retrieves a list of all posts - paged
+ *     tags:
+ *       - Posts
+ *     responses:
+ *       '200':
+ *         description: A list of posts - from all paged
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Post'
+ *       '500':
+ *         description: Internal server error
+ */
 router.get("/paged", postsController.getAllPaged.bind(postsController));
 
 /**
@@ -69,6 +90,7 @@ router.get("/paged", postsController.getAllPaged.bind(postsController));
  *       200:
  *         description: User's posts fetched successfully
  */
+
 router.get("/my-posts", authMiddleware, postsController.getMyPosts);
 
 /**
@@ -79,6 +101,8 @@ router.get("/my-posts", authMiddleware, postsController.getMyPosts);
  *     description: Retrieves a post by its ID
  *     tags:
  *       - Posts
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -98,6 +122,7 @@ router.get("/my-posts", authMiddleware, postsController.getMyPosts);
  *       '500':
  *         description: Internal server error
  */
+
 router.get("/:id", postsController.getById.bind(postsController));
 
 /**
@@ -128,6 +153,7 @@ router.get("/:id", postsController.getById.bind(postsController));
  *       '500':
  *         description: Internal server error
  */
+
 router.post("/", upload.single("image"), postsController.create);
 
 /**
@@ -157,29 +183,97 @@ router.post("/", upload.single("image"), postsController.create);
  *       '500':
  *         description: Internal server error
  */
-router.delete(
-  "/:id",
-  authMiddleware,
-  postsController.deletePost.bind(postsController)
-);
+router.delete("/:id", authMiddleware,postsController.deletePost.bind(postsController));
 
-router.post(
-  "/like/:id",
-  authMiddleware,
-  postsController.like.bind(postsController)
-);
+/**
+ * @swagger
+ * /posts/like/{id}:
+ *   post:
+ *     summary: Like a post
+ *     description: Like a post
+ *     tags:
+ *       - Posts
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Post'
+ *     responses:
+ *       '201':
+ *         description: Post liked successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Post'
+ *       '400':
+ *         description: Invalid input
+ *       '401':
+ *         description: Unauthorized
+ *       '500':
+ *         description: Internal server error
+ */
+router.post("/like/:id", authMiddleware, postsController.like.bind(postsController));
 
-router.post(
-  "/unlike/:id",
-  authMiddleware,
-  postsController.unlike.bind(postsController)
-);
+/**
+ * @swagger
+ * /posts/unlike/{id}:
+ *   post:
+ *     summary: Unlike a post
+ *     description: Unlike a post
+ *     tags:
+ *       - Posts
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Post'
+ *     responses:
+ *       '201':
+ *         description: Post unliked successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Post'
+ *       '400':
+ *         description: Invalid input
+ *       '401':
+ *         description: Unauthorized
+ *       '500':
+ *         description: Internal server error
+ */
+router.post("/unlike/:id",authMiddleware,postsController.unlike.bind(postsController));
 
-router.post(
-  "/comment/:id",
-  authMiddleware,
-  postsController.addComment.bind(postsController)
-);
+/**
+ * @swagger
+ * /posts/comment/{id}:
+ *   post:
+ *     summary: Add new comment to post
+ *     description: Add new comment to post
+ *     tags:
+ *       - Posts
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Post'
+ *     responses:
+ *       '201':
+ *         description: The comment added successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Post'
+ *       '400':
+ *         description: Invalid input
+ *       '401':
+ *         description: Unauthorized
+ *       '500':
+ *         description: Internal server error
+ */
+router.post("/comment/:id",authMiddleware,postsController.addComment.bind(postsController));
 
 /**
  * @swagger
@@ -211,11 +305,6 @@ router.post(
  *       200:
  *         description: Post updated successfully
  */
-router.put(
-  "/:id",
-  authMiddleware,
-  upload.single("image"),
-  postsController.updatePost
-);
+router.put("/:id",authMiddleware,upload.single("image"),postsController.updatePost);
 
 export default router;

@@ -11,10 +11,31 @@ const postSchema = new mongoose_1.default.Schema({
     },
     content: String,
     owner: {
-        type: String,
-        required: true,
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "User",
     },
-});
+    imageUrl: {
+        type: String,
+    },
+    usersWhoLiked: [
+        {
+            type: mongoose_1.default.Schema.Types.ObjectId,
+            ref: "User",
+        },
+    ],
+    comments: {
+        type: [
+            {
+                user: {
+                    type: mongoose_1.default.Schema.Types.ObjectId,
+                    ref: "User",
+                },
+                text: String,
+            },
+        ],
+        default: [], // 👈 הוספת ברירת מחדל למערך ריק
+    },
+}, { timestamps: true });
 const postModel = mongoose_1.default.model("Posts", postSchema);
 exports.default = postModel;
 //# sourceMappingURL=post_model.js.map

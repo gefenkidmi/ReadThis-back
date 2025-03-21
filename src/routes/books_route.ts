@@ -4,6 +4,13 @@ import { recommendBooks } from "../controllers/book_recommendation_controller";
 const router = express.Router();
 
 /**
+* @swagger
+* tags:
+*   name: Books
+*   description: The Authentication API
+*/
+
+/**
  * @swagger
  * /books/recommend:
  *   post:
