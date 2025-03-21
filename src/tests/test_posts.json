@@ -1,0 +1,31 @@
+{
+  "testUser": {
+    "email": "test@user.com",
+    "password": "testpassword",
+    "username": "testuser",
+    "imageUrl": "../uploads/posts/DefaultBook.png",
+    "token": "",
+    "_id": ""
+  },
+  "invalidPost": {
+    "content": "Test Content 2"
+  },
+  "validPost1": {
+    "title": "Test Post",
+    "content": "Test Content",
+    "owner": "TestOwner"
+  },
+  "validPost2": {
+    "title": "Test Post 2",
+    "content": "Test Content 2",
+    "owner": "TestOwner2"
+  },
+  "updatedPost": {
+    "title": "Updated Test Post",
+    "content": "Updated Test Content"
+  },
+  "comment": {
+    "content": "This is a test comment"
+  },
+  "invalidToken": "invalid_token"
+}

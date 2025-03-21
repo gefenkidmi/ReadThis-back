@@ -89,7 +89,7 @@ class PostsController extends BaseController<IPost> {
       });
 
       if (!post) {
-        res.status(404).send({ message: "Post not found or unauthorized" });
+        res.status(400).send({ message: "Post not found or unauthorized" });
         return;
       }
 
@@ -172,7 +172,7 @@ class PostsController extends BaseController<IPost> {
 
       // בדיקה אם המשתמש כבר עשה לייק
       if (requestedPost.usersWhoLiked.find((id) => id.toString() === userId)) {
-        res.status(400).send({ message: "User already liked this post" });
+        res.status(406).send({ message: "User already liked this post" });
         return;
       }
 
@@ -221,7 +221,7 @@ class PostsController extends BaseController<IPost> {
         (id) => id.toString() === userId
       );
       if (!alreadyLiked) {
-        res.status(400).json({ message: "User has not liked this post" });
+        res.status(406).json({ message: "User has not liked this post" });
         return;
       }
 
@@ -233,7 +233,7 @@ class PostsController extends BaseController<IPost> {
       // שמירה של הפוסט המעודכן
       await post.save();
 
-      res.status(200).json({ message: "Post unliked successfully", post });
+      res.status(200).send(post);
     } catch (error: any) {
       console.error("Error in unlike function:", error);
       res.status(500).json({
@@ -244,7 +244,6 @@ class PostsController extends BaseController<IPost> {
   }
 
   async addComment(req: AuthRequest, res: Response) {
-    console.log(req);
     try {
       if (!req.body.text || !req.user) {
         res.status(400).json({ message: "Missing required fields." });
@@ -275,7 +274,6 @@ class PostsController extends BaseController<IPost> {
         res.status(500).json({ message: "Failed to retrieve new comment." });
         return;
       }
-
       res.status(201).json(newComment);
     } catch (error) {
       console.error("Error adding comment:", error);
