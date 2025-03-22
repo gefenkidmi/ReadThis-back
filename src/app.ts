@@ -1,13 +1,19 @@
 import initApp from "./server";
+import https from "https";
+import fs from "fs";
 
 initApp()
   .then((app) => {
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-    });
-  })
-  .catch((error) => {
-    console.error("Failed to initialize app:", error);
-    process.exit(1);
+    if(process.env.NODE_ENV !== 'production') {
+      console.log("development");
+      app.listen(process.env.PORT, () => {
+        console.log(`App is listening at ${process.env.PORT}`);
+      });
+    } else {
+      const options ={
+        key: fs.readFileSync('./client-key.pem'),
+        cert: fs.readFileSync('./client-cert.pem')
+      };
+      https.createServer(options, app).listen(process.env.PORT)
+    }
   });

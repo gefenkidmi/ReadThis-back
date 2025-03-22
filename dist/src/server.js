@@ -35,11 +35,14 @@ app.use(express_1.default.json());
 // 3) Define routes
 app.use((0, cors_1.default)());
 app.use((0, cors_1.default)({
-    origin: "http://localhost:5173", // Allow requests from your frontend
+    origin: process.env.DOMAIN_BASE,
+    credentials: true,
     methods: "GET,POST,PUT,DELETE",
     allowedHeaders: "Content-Type,Authorization",
 }));
-app.use('/uploads', express_1.default.static(path_1.default.join(__dirname, 'uploads')));
+app.use('/uploads', express_1.default.static(path_1.default.join(__dirname, '/uploads')));
+app.use('/', express_1.default.static("front"));
+app.get('/ui/*', (req, res) => { res.sendFile(path_1.default.join("front", 'index.html')); });
 app.use("/posts", post_route_1.default);
 app.use("/comments", comments_route_1.default);
 app.use("/auth", users_route_1.default);
@@ -73,7 +76,11 @@ const options = {
             version: "1.0.0",
             description: "REST server including authentication using JWT",
         },
-        servers: [{ url: "http://localhost:" + process.env.PORT }],
+        servers: [
+            { url: "http://localhost:" + process.env.PORT },
+            { url: "http://10.10.246.56" },
+            { url: "https://10.10.246.56" }
+        ],
     },
     apis: ["./src/routes/*.ts"], // or wherever your routes with swagger comments are
 };

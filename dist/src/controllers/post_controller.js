@@ -82,7 +82,7 @@ class PostsController extends base_controller_1.default {
                     owner: req.user._id,
                 });
                 if (!post) {
-                    res.status(404).send({ message: "Post not found or unauthorized" });
+                    res.status(400).send({ message: "Post not found or unauthorized" });
                     return;
                 }
                 // מחיקת התמונה מהשרת אם קיימת
@@ -170,7 +170,7 @@ class PostsController extends base_controller_1.default {
                 }
                 // בדיקה אם המשתמש כבר עשה לייק
                 if (requestedPost.usersWhoLiked.find((id) => id.toString() === userId)) {
-                    res.status(400).send({ message: "User already liked this post" });
+                    res.status(406).send({ message: "User already liked this post" });
                     return;
                 }
                 // הוספת המשתמש למערך הלייקים
@@ -213,14 +213,14 @@ class PostsController extends base_controller_1.default {
                 // בדיקה אם המשתמש עשה לייק
                 const alreadyLiked = post.usersWhoLiked.some((id) => id.toString() === userId);
                 if (!alreadyLiked) {
-                    res.status(400).json({ message: "User has not liked this post" });
+                    res.status(406).json({ message: "User has not liked this post" });
                     return;
                 }
                 // הסרת המשתמש ממערך הלייקים
                 post.usersWhoLiked = post.usersWhoLiked.filter((id) => id.toString() !== userId);
                 // שמירה של הפוסט המעודכן
                 yield post.save();
-                res.status(200).json({ message: "Post unliked successfully", post });
+                res.status(200).send(post);
             }
             catch (error) {
                 console.error("Error in unlike function:", error);
@@ -234,7 +234,6 @@ class PostsController extends base_controller_1.default {
     addComment(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a, _b;
-            console.log(req);
             try {
                 if (!req.body.text || !req.user) {
                     res.status(400).json({ message: "Missing required fields." });

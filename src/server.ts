@@ -19,6 +19,7 @@ import path from "path";
 
 import swaggerUI from "swagger-ui-express";
 import cors from "cors";
+import { execArgv } from "process";
 
 // Initialize app
 const app = express();
@@ -30,6 +31,7 @@ app.use(
   })
 );
 
+
 // 2) Parse incoming JSON
 app.use(express.json());
 
@@ -37,13 +39,16 @@ app.use(express.json());
 app.use(cors());
 app.use(
   cors({
-    origin: "http://localhost:5173", // Allow requests from your frontend
+    origin: process.env.DOMAIN_BASE,
+    credentials: true,
     methods: "GET,POST,PUT,DELETE",
     allowedHeaders: "Content-Type,Authorization",
   })
 );
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
+app.use('/',express.static("front"));
+app.get('/ui/*', (req, res) => { res.sendFile(path.join("front", 'index.html')); });
 
 app.use("/posts", postsRoute);
 app.use("/comments", commentsRoute);
@@ -81,7 +86,11 @@ const options = {
       version: "1.0.0",
       description: "REST server including authentication using JWT",
     },
-    servers: [{ url: "http://localhost:" + process.env.PORT }],
+    servers: [
+      { url: "http://localhost:" + process.env.PORT }, 
+      {url: "http://10.10.246.56"}, 
+      {url: "https://10.10.246.56"}
+    ],
   },
   apis: ["./src/routes/*.ts"], // or wherever your routes with swagger comments are
 };
